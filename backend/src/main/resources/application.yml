@@ -1,0 +1,89 @@
+# ============================================
+# MovieFinder Backend Configuration
+# ============================================
+
+spring:
+  application:
+    name: moviefinder-backend
+
+  # Database Configuration (H2 for development)
+  datasource:
+    url: jdbc:h2:mem:moviefinder;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  # Cache Configuration
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=1000,expireAfterWrite=3600s
+
+# Server Configuration
+server:
+  port: 8080
+
+# CORS Configuration
+cors:
+  allowed-origins: http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173
+
+# ============================================
+# External API Keys (Set these in .env or environment)
+# ============================================
+
+api:
+  # Google Gemini AI
+  gemini:
+    api-key: ${GEMINI_API_KEY:your-gemini-api-key-here}
+    model: gemini-1.5-flash
+    base-url: https://generativelanguage.googleapis.com/v1beta
+
+  # TMDB (The Movie Database)
+  tmdb:
+    api-key: ${TMDB_API_KEY:your-tmdb-api-key-here}
+    base-url: https://api.themoviedb.org/3
+    image-base-url: https://image.tmdb.org/t/p
+
+  # YouTube Data API
+  youtube:
+    api-key: ${YOUTUBE_API_KEY:your-youtube-api-key-here}
+    base-url: https://www.googleapis.com/youtube/v3
+
+  # OpenSubtitles
+  opensubtitles:
+    api-key: ${OPENSUBTITLES_API_KEY:your-opensubtitles-api-key-here}
+    base-url: https://api.opensubtitles.com/api/v1
+
+# ============================================
+# Logging
+# ============================================
+
+logging:
+  level:
+    root: INFO
+    com.moviefinder: DEBUG
+    org.springframework.web: INFO
+
+# ============================================
+# OpenAPI / Swagger
+# ============================================
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method

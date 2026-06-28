@@ -1,0 +1,17 @@
+# Target directories
+target/
+bin/
+
+# Environment files
+.env
+.env.*
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.iws
+
+# OS files
+.DS_Store
+Thumbs.db

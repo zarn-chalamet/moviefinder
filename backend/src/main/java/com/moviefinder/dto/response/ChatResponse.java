@@ -1,0 +1,61 @@
+package com.moviefinder.dto.response;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class ChatResponse {
+    
+    private String reply;
+    private String conversationId;
+    private MovieDto movieContext;
+    private List<StreamingProviderDto> streamingInfo;
+    private List<String> suggestions;
+    private String language;
+    
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class MovieDto {
+        private Long tmdbId;
+        private String title;
+        private String titleTh;
+        private String titleMy;
+        private String year;
+        private Double rating;
+        private Integer voteCount;
+        private Integer runtime;
+        private List<String> genres;
+        private String overview;
+        private String overviewTh;
+        private String posterUrl;
+        private String backdropUrl;
+        private String director;
+        private List<String> cast;
+        private String tagline;
+    }
+    
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class StreamingProviderDto {
+        private String platform;
+        private String type;
+        private boolean isFree;
+        private String price;
+        private String country;
+        private String logo;
+        private String url;
+    }
+}

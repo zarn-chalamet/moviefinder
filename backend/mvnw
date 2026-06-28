@@ -1,0 +1,36 @@
+#!/bin/sh
+# Maven Wrapper script
+# This script downloads and runs Maven if not already installed
+
+set -e
+
+# Configuration
+MAVEN_VERSION="3.9.6"
+MAVEN_DOWNLOAD_URL="https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.zip"
+
+# Determine OS
+case "$(uname -s)" in
+    CYGWIN*|MINGW*|MSYS*) OS="Windows";;
+    *) OS="Unix";;
+esac
+
+# Find Maven
+if command -v mvn &> /dev/null; then
+    exec mvn "$@"
+fi
+
+# Maven not found - try to use wrapper
+WRAPPER_JAR=".mvn/wrapper/maven-wrapper.jar"
+
+if [ ! -f "$WRAPPER_JAR" ]; then
+    echo "Maven Wrapper not found. Please install Maven manually:"
+    echo ""
+    echo "  Mac:     brew install maven"
+    echo "  Ubuntu:  sudo apt install maven"
+    echo "  Windows: choco install maven"
+    echo ""
+    echo "Or download from: https://maven.apache.org/download.cgi"
+    exit 1
+fi
+
+exec java -jar "$WRAPPER_JAR" "$@"
