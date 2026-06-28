@@ -48,7 +48,7 @@ api:
   # Google Gemini AI
   gemini:
     api-key: ${GEMINI_API_KEY:your-gemini-api-key-here}
-    model: gemini-1.5-flash
+    model: gemini-2.5-flash
     base-url: https://generativelanguage.googleapis.com/v1beta
 
   # TMDB (The Movie Database)

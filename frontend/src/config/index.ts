@@ -6,7 +6,7 @@ export const config = {
   API_URL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1',
   
   // Set to false when backend is ready
-  USE_MOCK_API: true,
+  USE_MOCK_API: import.meta.env.VITE_USE_MOCK_API === 'true' ? true : false,
   
   // API Timeout (ms)
   API_TIMEOUT: 30000,
