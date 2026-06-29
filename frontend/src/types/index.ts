@@ -40,6 +40,8 @@ export interface ChatMessage {
   streamingInfo?: StreamingProvider[];
   suggestions?: string[];
   isTyping?: boolean;
+  analysisMethod?: 'text' | 'vision';
+  processingMessage?: string;
 }
 
 export interface WatchlistItem {

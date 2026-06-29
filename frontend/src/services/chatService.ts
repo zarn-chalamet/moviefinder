@@ -12,7 +12,10 @@ export interface SendMessageRequest {
   language: Language;
   conversationId?: string | null;
   movieContext?: Movie | null;
-  history?: { role: 'user' | 'assistant'; content: string }[];
+  history?: Array<{
+    role: 'user' | 'model';
+    content: string;
+  }>;
 }
 
 export interface SendMessageResponse {
@@ -22,6 +25,8 @@ export interface SendMessageResponse {
   streamingInfo: StreamingProvider[];
   suggestions: string[];
   language: Language;
+  analysisMethod?: string;
+  processingMessage?: string;
 }
 
 export interface AnalyzeUrlRequest {
@@ -119,6 +124,8 @@ export const chatService = {
       streamingInfo: mockResponse.streaming || [],
       suggestions: mockResponse.suggestions,
       language: request.language,
+      analysisMethod: 'text',
+      processingMessage: 'Identified from text metadata',
     };
   },
 
@@ -156,6 +163,8 @@ export const chatService = {
       streamingInfo: mockResponse.streaming || [],
       suggestions: mockResponse.suggestions,
       language: request.language,
+      analysisMethod: 'image',
+      processingMessage: 'Processing your image...',
     };
   },
 

@@ -21,7 +21,10 @@ public class ChatResponse {
     private List<StreamingProviderDto> streamingInfo;
     private List<String> suggestions;
     private String language;
-    
+
+    private String analysisMethod;
+    private String processingMessage;
+        
     @Data
     @Builder
     @NoArgsConstructor

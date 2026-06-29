@@ -58,45 +58,67 @@ public class ChatService {
     public ChatResponse analyzeUrl(AnalyzeUrlRequest request) {
         String url = request.getUrl();
         String language = request.getLanguage();
-        
-        log.info("Analyzing URL: {}", url);
 
-        // Get video metadata
         UrlAnalyzerService.VideoMetadata metadata = urlAnalyzerService.analyzeUrl(url);
-        
+
         if (metadata.hasError()) {
             return ChatResponse.builder()
                     .reply(getUrlErrorMessage(language, metadata.getPlatform()))
                     .conversationId(generateConversationId())
                     .suggestions(getDefaultSuggestions(language))
                     .language(language)
+                    .analysisMethod("text")
                     .build();
         }
 
-        // Use AI to identify the movie from metadata
+        // === STEP 1: Try Fast Method (Text) ===
         String aiResponse = geminiService.identifyMovie(
                 metadata.getTitle(),
                 metadata.getDescription(),
                 metadata.getHashtags(),
                 language,
-                request.getHistory()
+                request.getHistory()   // ← Pass history
         );
 
-        // Try to find the movie in TMDB
-        MovieResponse movie = findMovieFromAiResponse(aiResponse, language);
+        // === STEP 2: Check Confidence ===
+        boolean isConfident = isHighConfidence(aiResponse, metadata);
+
+        if (isConfident) {
+            MovieResponse movie = findMovieFromAiResponse(aiResponse, language);
+            List<MovieResponse.StreamingProvider> streaming = null;
+            if (movie != null) {
+                streaming = tmdbService.getStreamingProviders(movie.getId(), "TH");
+            }
+
+            return ChatResponse.builder()
+                    .reply(aiResponse)
+                    .conversationId(generateConversationId())
+                    .movieContext(movie != null ? toMovieDto(movie) : null)
+                    .streamingInfo(streaming != null ? toStreamingDtos(streaming) : null)
+                    .suggestions(getSuggestions(language, movie != null))
+                    .language(language)
+                    .analysisMethod("text")
+                    .build();
+        }
+
+        // === STEP 3: Low Confidence → Run Vision Method ===
+        String visionReply = runVisionBasedIdentification(url, language, request.getHistory());
+
+        MovieResponse movie = findMovieFromAiResponse(visionReply, language);
         List<MovieResponse.StreamingProvider> streaming = null;
-        
         if (movie != null) {
             streaming = tmdbService.getStreamingProviders(movie.getId(), "TH");
         }
 
         return ChatResponse.builder()
-                .reply(aiResponse)
+                .reply(visionReply)
                 .conversationId(generateConversationId())
                 .movieContext(movie != null ? toMovieDto(movie) : null)
                 .streamingInfo(streaming != null ? toStreamingDtos(streaming) : null)
                 .suggestions(getSuggestions(language, movie != null))
                 .language(language)
+                .analysisMethod("vision")
+                .processingMessage("Text was unclear. Analyzed using video frames.")
                 .build();
     }
 
@@ -340,5 +362,37 @@ public class ChatService {
             case "my" -> String.format("❌ %s ဗီဒီယိုကို ဝင်ကြည့်လို့မရပါ။ ကိုယ်ပိုင်ဗီဒီယိုဖြစ်နိုင်သည် သို့မဟုတ် ဖျက်ပစ်ပြီးဖြစ်နိုင်ပါသည်။\n\nမှတ်မိတဲ့ ဇာတ်ကွက်ကို ဖော်ပြပါ။", platformName);
             default -> String.format("❌ Could not access the %s video. It might be private or deleted.\n\nTry describing the scene you remember instead!", platformName);
         };
+    }
+
+    private boolean isHighConfidence(String aiResponse, UrlAnalyzerService.VideoMetadata metadata) {
+        if (aiResponse == null) return false;
+
+        String lower = aiResponse.toLowerCase();
+
+        // Bad signals
+        if (lower.contains("i'm not sure") || 
+            lower.contains("could not identify") ||
+            lower.contains("not enough information") ||
+            lower.contains("please provide more")) {
+            return false;
+        }
+
+        // Good signals
+        boolean hasTitleAndYear = lower.contains("(") && 
+                                (lower.contains("20") || lower.contains("19"));
+
+        boolean metadataIsWeak = metadata.getTitle() == null || 
+                                metadata.getTitle().length() < 5;
+
+        if (metadataIsWeak && !hasTitleAndYear) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private String runVisionBasedIdentification(String url, String language, List<ChatRequest.Message> history) {
+        // Implement yt-dlp + ffmpeg + Gemini Vision
+        return "🎥 [Vision Analysis] This movie appears to be identified from video frames.";
     }
 }

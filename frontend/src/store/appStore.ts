@@ -95,9 +95,9 @@ const useAppStore = create<AppState>((set, get) => ({
       error: null,
     }));
 
-    const history = [...messages, userMessage].map(m => ({
-        role: m.role, // 'user' or 'assistant'
-        content: m.content
+    const history = messages.map((m): { role: 'user' | 'model'; content: string } => ({
+      role: m.role === 'assistant' ? 'model' : 'user',
+      content: m.content
     }));
 
     try {
@@ -107,7 +107,7 @@ const useAppStore = create<AppState>((set, get) => ({
         language,
         conversationId: null,
         movieContext: null,
-        history
+        history: history.length > 0 ? history : undefined
       });
 
       // Add AI response
@@ -119,6 +119,8 @@ const useAppStore = create<AppState>((set, get) => ({
         movieContext: response.movieContext,
         streamingInfo: response.streamingInfo,
         suggestions: response.suggestions,
+        analysisMethod: response.analysisMethod === 'vision' ? 'vision' : 'text',
+        processingMessage: response.processingMessage,
       };
 
       set((state) => ({

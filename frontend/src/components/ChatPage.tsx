@@ -169,6 +169,23 @@ function MessageBubble({
           {formatMessage(message.content)}
         </div>
 
+        {/* Show analysis method & processing message */}
+        {!isUser && message.analysisMethod && (
+          <div className="mt-2 text-[11px] text-neon-cyan flex items-center gap-1.5">
+            {message.analysisMethod === 'vision' ? (
+              <>
+                <span>🎥</span>
+                <span>{message.processingMessage || 'Analyzed using video frames'}</span>
+              </>
+            ) : (
+              <>
+                <span>📝</span>
+                <span>{message.processingMessage || 'Identified from text metadata'}</span>
+              </>
+            )}
+          </div>
+        )}
+        
         {/* Movie Card */}
         {message.movieContext && (
           <MovieCard
