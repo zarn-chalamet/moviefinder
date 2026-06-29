@@ -1,5 +1,7 @@
 package com.moviefinder.dto.request;
 
+import java.util.List;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
@@ -22,4 +24,6 @@ public class AnalyzeUrlRequest {
     
     @Builder.Default
     private String language = "en";
+
+    private List<ChatRequest.Message> history;
 }

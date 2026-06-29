@@ -12,6 +12,7 @@ export interface SendMessageRequest {
   language: Language;
   conversationId?: string | null;
   movieContext?: Movie | null;
+  history?: { role: 'user' | 'assistant'; content: string }[];
 }
 
 export interface SendMessageResponse {

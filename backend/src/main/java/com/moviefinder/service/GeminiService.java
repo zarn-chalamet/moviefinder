@@ -2,12 +2,15 @@ package com.moviefinder.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.moviefinder.dto.request.ChatRequest;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -35,19 +38,25 @@ public class GeminiService {
     /**
      * Send a message to Gemini AI and get a response
      */
-    public String chat(String userMessage, String language, String context) {
+    public String chat(String userMessage, String language, String context, List<ChatRequest.Message> history) {
         try {
-            String systemPrompt = buildSystemPrompt(language, context);
-            String fullPrompt = systemPrompt + "\n\nUser: " + userMessage;
+
+            // 1. Build the prompt with history
+            List<Map<String, Object>> contents = new ArrayList<>();
+            
+            // Add history to contents list
+            if (history != null) {
+                for (ChatRequest.Message msg : history) {
+                    contents.add(Map.of("role", msg.getRole().equals("user") ? "user" : "model",
+                                        "parts", List.of(Map.of("text", msg.getContent()))));
+                }
+            }
+
+            // Add current message
+            contents.add(Map.of("role", "user", "parts", List.of(Map.of("text", userMessage))));
 
             Map<String, Object> requestBody = Map.of(
-                "contents", List.of(
-                    Map.of(
-                        "parts", List.of(
-                            Map.of("text", fullPrompt)
-                        )
-                    )
-                ),
+                "contents", contents,
                 "generationConfig", Map.of(
                     "temperature", 0.7,
                     "topK", 40,
@@ -76,7 +85,7 @@ public class GeminiService {
     /**
      * Identify a movie from video metadata
      */
-    public String identifyMovie(String videoTitle, String videoDescription, String hashtags, String language) {
+    public String identifyMovie(String videoTitle, String videoDescription, String hashtags, String language, List<ChatRequest.Message> history) {
         String prompt = String.format("""
             You are a movie identification expert. Based on the following video metadata, identify the movie or TV show being referenced.
             
@@ -102,15 +111,15 @@ public class GeminiService {
             getLanguageName(language)
         );
 
-        return chat(prompt, language, null);
+        return chat(prompt, language, null, history);
     }
 
     /**
      * Answer a follow-up question about a movie
      */
-    public String answerMovieQuestion(String question, String movieTitle, String movieYear, String language) {
+    public String answerMovieQuestion(String question, String movieTitle, String movieYear, String language, List<ChatRequest.Message> history) {
         String context = String.format("The user is asking about the movie '%s' (%s).", movieTitle, movieYear);
-        return chat(question, language, context);
+        return chat(question, language, context, history);
     }
 
     private String buildSystemPrompt(String language, String context) {

@@ -49,7 +49,7 @@ public class ChatService {
         }
 
         // Regular movie identification from description
-        return identifyFromDescription(message, language);
+        return identifyFromDescription(message, language, request.getHistory());
     }
 
     /**
@@ -78,7 +78,8 @@ public class ChatService {
                 metadata.getTitle(),
                 metadata.getDescription(),
                 metadata.getHashtags(),
-                language
+                language,
+                request.getHistory()
         );
 
         // Try to find the movie in TMDB
@@ -102,12 +103,13 @@ public class ChatService {
     /**
      * Identify movie from text description
      */
-    private ChatResponse identifyFromDescription(String description, String language) {
+    private ChatResponse identifyFromDescription(String description, String language, List<ChatRequest.Message> history) {
         // Ask AI to identify
         String aiResponse = geminiService.chat(
                 "I'm looking for a movie. Here's what I remember: " + description,
                 language,
-                null
+                null,
+                history
         );
 
         // Try to find in TMDB
@@ -138,7 +140,8 @@ public class ChatService {
                 request.getMessage(),
                 context.getTitle(),
                 context.getYear(),
-                request.getLanguage()
+                request.getLanguage(),
+                request.getHistory()
         );
 
         return ChatResponse.builder()

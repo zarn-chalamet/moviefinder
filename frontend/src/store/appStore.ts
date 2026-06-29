@@ -79,7 +79,7 @@ const useAppStore = create<AppState>((set, get) => ({
   isTyping: false,
 
   sendMessage: async (content) => {
-    const { language } = get();
+    const { language, messages } = get();
 
     // Add user message
     const userMessage: ChatMessage = {
@@ -95,6 +95,11 @@ const useAppStore = create<AppState>((set, get) => ({
       error: null,
     }));
 
+    const history = [...messages, userMessage].map(m => ({
+        role: m.role, // 'user' or 'assistant'
+        content: m.content
+    }));
+
     try {
       // Call chat service (mock or real API)
       const response = await chatService.sendMessage({
@@ -102,6 +107,7 @@ const useAppStore = create<AppState>((set, get) => ({
         language,
         conversationId: null,
         movieContext: null,
+        history
       });
 
       // Add AI response
