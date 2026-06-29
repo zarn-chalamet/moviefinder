@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,32 +35,47 @@ public class GeminiService {
     }
 
     /**
-     * Send a message to Gemini AI and get a response
+     * Send a message to Gemini AI with system prompt injection
      */
     public String chat(String userMessage, String language, String context, List<ChatRequest.Message> history) {
         try {
-
-            // 1. Build the prompt with history
             List<Map<String, Object>> contents = new ArrayList<>();
             
-            // Add history to contents list
+            // Inject system prompt as first conversation turn
+            String systemPrompt = buildSystemPrompt(language, context);
+            contents.add(Map.of(
+                "role", "user",
+                "parts", List.of(Map.of("text", systemPrompt))
+            ));
+            contents.add(Map.of(
+                "role", "model",
+                "parts", List.of(Map.of("text", "Understood! I'm MovieFinder AI, ready to help identify movies and shows. 🎬"))
+            ));
+            
+            // Add history
             if (history != null) {
                 for (ChatRequest.Message msg : history) {
-                    contents.add(Map.of("role", msg.getRole().equals("user") ? "user" : "model",
-                                        "parts", List.of(Map.of("text", msg.getContent()))));
+                    contents.add(Map.of(
+                        "role", msg.getRole().equals("user") ? "user" : "model",
+                        "parts", List.of(Map.of("text", msg.getContent()))
+                    ));
                 }
             }
 
             // Add current message
-            contents.add(Map.of("role", "user", "parts", List.of(Map.of("text", userMessage))));
+            contents.add(Map.of(
+                "role", "user",
+                "parts", List.of(Map.of("text", userMessage))
+            ));
 
+            // Increased tokens
             Map<String, Object> requestBody = Map.of(
                 "contents", contents,
                 "generationConfig", Map.of(
                     "temperature", 0.7,
                     "topK", 40,
                     "topP", 0.95,
-                    "maxOutputTokens", 2048
+                    "maxOutputTokens", 4096
                 )
             );
 
@@ -83,32 +97,54 @@ public class GeminiService {
     }
 
     /**
-     * Identify a movie from video metadata
+     * Identify a movie from video metadata with strict format
      */
     public String identifyMovie(String videoTitle, String videoDescription, String hashtags, String language, List<ChatRequest.Message> history) {
+        String langInstruction = switch (language) {
+            case "th" -> "Respond in Thai (ภาษาไทย)";
+            case "my" -> "Respond in Burmese (မြန်မာဘာသာ)";
+            default -> "Respond in English";
+        };
+
         String prompt = String.format("""
-            You are a movie identification expert. Based on the following video metadata, identify the movie or TV show being referenced.
+            You are a movie/TV show identification expert.
             
-            Video Title: %s
-            Video Description: %s
+            VIDEO METADATA:
+            Title: %s
+            Description: %s
             Hashtags: %s
             
-            If you can identify the movie:
-            1. State the movie name, year, and brief description
-            2. Provide key details (director, main cast, genre)
-            3. Give a confidence level (high/medium/low)
+            %s.
             
-            If you cannot identify it:
-            1. Explain why
-            2. Ask for more details if needed
+            CRITICAL RULES:
+            1. Use the ENGLISH/INTERNATIONAL title (NOT Korean/Chinese/Japanese characters)
+               Example: "Your Honor" NOT "유어 아너"
+            2. The title may be in Burmese/Thai - translate it to identify the movie
+            3. NO long preambles - start directly with the format
             
-            Respond in %s language.
-            Format your response in a friendly, conversational way with emojis.
+            If you can identify it, respond in EXACTLY this format:
+            
+            🎬 **[English Title] (Year)**
+            
+            📺 **Type:** Movie or TV Series
+            🎭 **Genre:** [genres]
+            ⭐ **Cast:** [main actors]
+            📖 **Plot:** [2-3 sentence description]
+            🎯 **Confidence:** High / Medium / Low
+            💡 **Why:** [Brief reason - which metadata clue helped]
+            
+            If you CANNOT identify confidently:
+            
+            ❌ **Could not identify**
+            📝 [What the metadata suggests]
+            ❓ [What additional info would help]
+            
+            Keep response under 250 words.
             """, 
-            videoTitle, 
-            videoDescription, 
-            hashtags,
-            getLanguageName(language)
+            videoTitle != null ? videoTitle : "N/A", 
+            videoDescription != null ? videoDescription : "N/A", 
+            hashtags != null ? hashtags : "N/A",
+            langInstruction
         );
 
         return chat(prompt, language, null, history);
@@ -118,7 +154,7 @@ public class GeminiService {
      * Answer a follow-up question about a movie
      */
     public String answerMovieQuestion(String question, String movieTitle, String movieYear, String language, List<ChatRequest.Message> history) {
-        String context = String.format("The user is asking about the movie '%s' (%s).", movieTitle, movieYear);
+        String context = String.format("The user is asking about the movie/show '%s' (%s).", movieTitle, movieYear);
         return chat(question, language, context, history);
     }
 
@@ -130,18 +166,19 @@ public class GeminiService {
         };
 
         String systemPrompt = String.format("""
-            You are MovieFinder AI, an expert at identifying movies from social media clips.
-            You help users in Myanmar and Thailand find movies they've seen on TikTok, Facebook, Instagram, or YouTube.
+            You are MovieFinder AI, an expert at identifying movies and TV shows from social media clips.
+            You help users in Myanmar and Thailand find content they've seen on TikTok, Facebook, Instagram, or YouTube.
             
             %s
             
             Guidelines:
             - Be conversational and friendly
             - Use emojis to make responses engaging
-            - When identifying a movie, provide: title, year, rating, genre, brief plot
-            - Always mention where to watch (Netflix, Disney+, free sites)
+            - When identifying, ALWAYS use English/international titles (not Korean/Chinese characters)
+            - Provide: title, year, type (movie/TV), genre, cast, plot
+            - Mention where to watch (Netflix, Disney+, TrueID, etc.)
             - If unsure, ask clarifying questions
-            - Support questions about streaming availability in Thailand
+            - Support Burmese, Thai, English content
             """, langInstruction);
 
         if (context != null && !context.isEmpty()) {
@@ -154,12 +191,24 @@ public class GeminiService {
     private String extractTextFromResponse(String jsonResponse) {
         try {
             JsonNode root = objectMapper.readTree(jsonResponse);
+            
+            if (root.has("error")) {
+                String msg = root.path("error").path("message").asText();
+                log.error("Gemini error: {}", msg);
+                return "API error: " + msg;
+            }
+            
             JsonNode candidates = root.path("candidates");
             
             if (candidates.isArray() && candidates.size() > 0) {
-                JsonNode content = candidates.get(0).path("content");
-                JsonNode parts = content.path("parts");
+                JsonNode candidate = candidates.get(0);
                 
+                String finishReason = candidate.path("finishReason").asText();
+                if ("MAX_TOKENS".equals(finishReason)) {
+                    log.warn("Response truncated due to MAX_TOKENS");
+                }
+                
+                JsonNode parts = candidate.path("content").path("parts");
                 if (parts.isArray() && parts.size() > 0) {
                     return parts.get(0).path("text").asText();
                 }
@@ -170,14 +219,6 @@ public class GeminiService {
             log.error("Error parsing Gemini response: {}", e.getMessage());
             return "Sorry, there was an error processing the response.";
         }
-    }
-
-    private String getLanguageName(String code) {
-        return switch (code) {
-            case "th" -> "Thai";
-            case "my" -> "Burmese";
-            default -> "English";
-        };
     }
 
     private String getErrorMessage(String language) {

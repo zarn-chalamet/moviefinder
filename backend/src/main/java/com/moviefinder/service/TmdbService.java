@@ -11,6 +11,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Service
 @Slf4j
@@ -40,8 +42,10 @@ public class TmdbService {
     public List<MovieResponse> searchMovies(String query, String language) {
         try {
             String url = baseUrl + "/search/movie?api_key=" + apiKey 
-                    + "&query=" + query 
+                    + "&query=" + URLEncoder.encode(query, StandardCharsets.UTF_8)
                     + "&language=" + getTmdbLanguage(language);
+
+            log.info("TMDB movie search: {}", query);
 
             String response = webClient.get()
                     .uri(url)
@@ -147,6 +151,175 @@ public class TmdbService {
         } catch (Exception e) {
             log.error("Error getting similar movies: {}", e.getMessage());
             return List.of();
+        }
+    }
+
+    // ============================================
+    // Series and TV show methods
+    // ============================================
+
+    /**
+     * Search TV shows (K-dramas, anime, series)
+     */
+    @Cacheable(value = "tv", key = "#query + '-' + #language")
+    public List<MovieResponse> searchTvShows(String query, String language) {
+        try {
+            String url = baseUrl + "/search/tv?api_key=" + apiKey 
+                    + "&query=" + URLEncoder.encode(query, StandardCharsets.UTF_8)
+                    + "&language=" + getTmdbLanguage(language);
+
+            log.info("TMDB TV search: {}", query);
+
+            String response = webClient.get()
+                    .uri(url)
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block();
+
+            return parseTvResults(response);
+
+        } catch (Exception e) {
+            log.error("Error searching TV shows: {}", e.getMessage());
+            return List.of();
+        }
+    }
+
+    /**
+     * Get TV show details by ID
+     */
+    @Cacheable(value = "tv", key = "'tv-' + #tvId + '-' + #language")
+    public MovieResponse getTvShowById(Long tvId, String language) {
+        try {
+            String url = baseUrl + "/tv/" + tvId 
+                    + "?api_key=" + apiKey 
+                    + "&language=" + getTmdbLanguage(language)
+                    + "&append_to_response=credits,videos";
+
+            String response = webClient.get()
+                    .uri(url)
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block();
+
+            return parseTvDetails(response);
+
+        } catch (Exception e) {
+            log.error("Error getting TV details: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Parse TV search results
+     */
+    private List<MovieResponse> parseTvResults(String jsonResponse) {
+        List<MovieResponse> shows = new ArrayList<>();
+        
+        try {
+            JsonNode root = objectMapper.readTree(jsonResponse);
+            JsonNode results = root.path("results");
+            
+            if (results.isArray()) {
+                for (JsonNode node : results) {
+                    String firstAirDate = node.path("first_air_date").asText("");
+                    String year = firstAirDate.length() >= 4 ? firstAirDate.substring(0, 4) : "";
+
+                    shows.add(MovieResponse.builder()
+                            .id(node.path("id").asLong())
+                            .title(node.path("name").asText())
+                            .originalTitle(node.path("original_name").asText())
+                            .year(year)
+                            .releaseDate(firstAirDate)
+                            .rating(Math.round(node.path("vote_average").asDouble() * 10.0) / 10.0)
+                            .voteCount(node.path("vote_count").asInt())
+                            .overview(node.path("overview").asText())
+                            .posterUrl(getImageUrl(node.path("poster_path").asText(), "w500"))
+                            .backdropUrl(getImageUrl(node.path("backdrop_path").asText(), "original"))
+                            .genres(parseGenreIds(node.path("genre_ids")))
+                            .build());
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error parsing TV results: {}", e.getMessage());
+        }
+        
+        return shows;
+    }
+
+    /**
+     * Parse TV show details
+     */
+    private MovieResponse parseTvDetails(String jsonResponse) {
+        try {
+            JsonNode node = objectMapper.readTree(jsonResponse);
+            
+            String firstAirDate = node.path("first_air_date").asText("");
+            String year = firstAirDate.length() >= 4 ? firstAirDate.substring(0, 4) : "";
+
+            MovieResponse.MovieResponseBuilder builder = MovieResponse.builder()
+                    .id(node.path("id").asLong())
+                    .title(node.path("name").asText())
+                    .originalTitle(node.path("original_name").asText())
+                    .year(year)
+                    .releaseDate(firstAirDate)
+                    .rating(Math.round(node.path("vote_average").asDouble() * 10.0) / 10.0)
+                    .voteCount(node.path("vote_count").asInt())
+                    .overview(node.path("overview").asText())
+                    .posterUrl(getImageUrl(node.path("poster_path").asText(), "w500"))
+                    .backdropUrl(getImageUrl(node.path("backdrop_path").asText(), "original"))
+                    .tagline(node.path("tagline").asText())
+                    .status(node.path("status").asText());
+
+            // Parse genres
+            List<String> genres = new ArrayList<>();
+            for (JsonNode genre : node.path("genres")) {
+                genres.add(genre.path("name").asText());
+            }
+            builder.genres(genres);
+
+            // Parse credits
+            JsonNode credits = node.path("credits");
+            if (!credits.isMissingNode()) {
+                // Creator/Director
+                for (JsonNode creator : node.path("created_by")) {
+                    builder.director(creator.path("name").asText());
+                    break;
+                }
+
+                // Cast
+                List<String> cast = new ArrayList<>();
+                int castCount = 0;
+                for (JsonNode castMember : credits.path("cast")) {
+                    if (castCount >= 5) break;
+                    cast.add(castMember.path("name").asText());
+                    castCount++;
+                }
+                builder.cast(cast);
+            }
+
+            // Trailer
+            JsonNode videos = node.path("videos").path("results");
+            if (videos.isArray()) {
+                for (JsonNode video : videos) {
+                    if ("Trailer".equals(video.path("type").asText()) && 
+                        "YouTube".equals(video.path("site").asText())) {
+                        String key = video.path("key").asText();
+                        builder.trailer(MovieResponse.TrailerInfo.builder()
+                                .key(key)
+                                .name(video.path("name").asText())
+                                .site("YouTube")
+                                .url("https://www.youtube.com/watch?v=" + key)
+                                .build());
+                        break;
+                    }
+                }
+            }
+
+            return builder.build();
+
+        } catch (Exception e) {
+            log.error("Error parsing TV details: {}", e.getMessage());
+            return null;
         }
     }
 

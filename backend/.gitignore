@@ -15,3 +15,8 @@ bin/
 # OS files
 .DS_Store
 Thumbs.db
+
+# tools
+backend/tools/
+tools/
+*.exe

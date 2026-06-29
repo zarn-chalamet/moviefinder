@@ -1,10 +1,10 @@
 package com.moviefinder.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 
 import java.util.regex.Matcher;
@@ -14,9 +14,6 @@ import java.util.regex.Pattern;
 @Slf4j
 public class UrlAnalyzerService {
 
-    /**
-     * Analyze a social media URL and extract video metadata
-     */
     public VideoMetadata analyzeUrl(String url) {
         try {
             Platform platform = detectPlatform(url);
@@ -42,9 +39,6 @@ public class UrlAnalyzerService {
         }
     }
 
-    /**
-     * Detect which platform the URL belongs to
-     */
     public Platform detectPlatform(String url) {
         String lowerUrl = url.toLowerCase();
         
@@ -61,19 +55,35 @@ public class UrlAnalyzerService {
         return Platform.UNKNOWN;
     }
 
+    /**
+     * UTF-8 fixed connection helper
+     */
+    private Document fetchDocumentUtf8(String url, String userAgent) throws Exception {
+        Connection.Response response = Jsoup.connect(url)
+                .userAgent(userAgent)
+                .timeout(15000)
+                .header("Accept-Charset", "UTF-8")
+                .header("Accept-Language", "en-US,en;q=0.9,my;q=0.8,th;q=0.7,ko;q=0.6")
+                .ignoreContentType(true)
+                .execute();
+        
+        response.charset("UTF-8");
+        Document doc = response.parse();
+        doc.outputSettings().charset("UTF-8");
+        return doc;
+    }
+
     private VideoMetadata analyzeTikTok(String url) {
         try {
-            Document doc = Jsoup.connect(url)
-                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
-                    .timeout(10000)
-                    .get();
+            Document doc = fetchDocumentUtf8(url, 
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
 
             String title = extractMetaContent(doc, "og:title");
             String description = extractMetaContent(doc, "og:description");
             String thumbnail = extractMetaContent(doc, "og:image");
-            
-            // Extract hashtags from description
             String hashtags = extractHashtags(description);
+
+            log.info("TikTok metadata - Title: {}", title);
 
             return VideoMetadata.builder()
                     .platform(Platform.TIKTOK)
@@ -89,21 +99,22 @@ public class UrlAnalyzerService {
             return VideoMetadata.builder()
                     .platform(Platform.TIKTOK)
                     .url(url)
-                    .error("Could not fetch video details. The video might be private or unavailable.")
+                    .error("Could not fetch video details.")
                     .build();
         }
     }
 
     private VideoMetadata analyzeFacebook(String url) {
         try {
-            Document doc = Jsoup.connect(url)
-                    .userAgent("Mozilla/5.0 (compatible; Googlebot/2.1)")
-                    .timeout(10000)
-                    .get();
+            Document doc = fetchDocumentUtf8(url, 
+                "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)");
 
             String title = extractMetaContent(doc, "og:title");
             String description = extractMetaContent(doc, "og:description");
             String thumbnail = extractMetaContent(doc, "og:image");
+
+            log.info("Facebook metadata - Title: {}", title);
+            log.info("Facebook metadata - Description: {}", description);
 
             return VideoMetadata.builder()
                     .platform(Platform.FACEBOOK)
@@ -119,22 +130,21 @@ public class UrlAnalyzerService {
             return VideoMetadata.builder()
                     .platform(Platform.FACEBOOK)
                     .url(url)
-                    .error("Could not fetch video details. Facebook videos are often restricted.")
+                    .error("Could not fetch video details.")
                     .build();
         }
     }
 
     private VideoMetadata analyzeInstagram(String url) {
         try {
-            // Instagram requires special handling - often blocked
-            Document doc = Jsoup.connect(url)
-                    .userAgent("Mozilla/5.0 (compatible; Googlebot/2.1)")
-                    .timeout(10000)
-                    .get();
+            Document doc = fetchDocumentUtf8(url,
+                "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)");
 
             String title = extractMetaContent(doc, "og:title");
             String description = extractMetaContent(doc, "og:description");
             String thumbnail = extractMetaContent(doc, "og:image");
+
+            log.info("Instagram metadata - Title: {}", title);
 
             return VideoMetadata.builder()
                     .platform(Platform.INSTAGRAM)
@@ -150,32 +160,30 @@ public class UrlAnalyzerService {
             return VideoMetadata.builder()
                     .platform(Platform.INSTAGRAM)
                     .url(url)
-                    .error("Could not fetch video details. Instagram content is often restricted.")
+                    .error("Could not fetch video details.")
                     .build();
         }
     }
 
     private VideoMetadata analyzeYouTube(String url) {
         try {
-            // Extract video ID
             String videoId = extractYouTubeVideoId(url);
             String embedUrl = "https://www.youtube.com/watch?v=" + videoId;
 
-            Document doc = Jsoup.connect(embedUrl)
-                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
-                    .timeout(10000)
-                    .get();
+            Document doc = fetchDocumentUtf8(embedUrl,
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
 
             String title = extractMetaContent(doc, "og:title");
             String description = extractMetaContent(doc, "og:description");
             String thumbnail = "https://img.youtube.com/vi/" + videoId + "/maxresdefault.jpg";
 
-            // Try to get channel name
             String channelName = "";
             Element channelElement = doc.selectFirst("link[itemprop=name]");
             if (channelElement != null) {
                 channelName = channelElement.attr("content");
             }
+
+            log.info("YouTube metadata - Title: {}", title);
 
             return VideoMetadata.builder()
                     .platform(Platform.YOUTUBE)
@@ -203,7 +211,6 @@ public class UrlAnalyzerService {
         if (meta != null) {
             return meta.attr("content");
         }
-        // Try name attribute
         meta = doc.selectFirst("meta[name=" + property + "]");
         return meta != null ? meta.attr("content") : "";
     }
@@ -224,7 +231,6 @@ public class UrlAnalyzerService {
     }
 
     private String extractYouTubeVideoId(String url) {
-        // Handle various YouTube URL formats
         String[] patterns = {
             "(?:youtube\\.com/watch\\?v=|youtu\\.be/|youtube\\.com/embed/)([a-zA-Z0-9_-]{11})",
             "youtube\\.com/shorts/([a-zA-Z0-9_-]{11})"
@@ -245,10 +251,6 @@ public class UrlAnalyzerService {
         if (text == null) return "";
         return text.replaceAll("\\s+", " ").trim();
     }
-
-    // ============================================
-    // Data classes
-    // ============================================
 
     public enum Platform {
         TIKTOK, FACEBOOK, INSTAGRAM, YOUTUBE, UNKNOWN

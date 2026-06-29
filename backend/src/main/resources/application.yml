@@ -26,6 +26,11 @@ spring:
       hibernate:
         format_sql: true
 
+  mandatory-file-encoding: UTF-8
+  mvc:
+    async:
+      request-timeout: 120000
+
   # Cache Configuration
   cache:
     type: caffeine
@@ -35,6 +40,11 @@ spring:
 # Server Configuration
 server:
   port: 8080
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
 
 # CORS Configuration
 cors:
@@ -47,24 +57,24 @@ cors:
 api:
   # Google Gemini AI
   gemini:
-    api-key: ${GEMINI_API_KEY:your-gemini-api-key-here}
+    api-key: ${GEMINI_API_KEY}
     model: gemini-2.5-flash
     base-url: https://generativelanguage.googleapis.com/v1beta
 
   # TMDB (The Movie Database)
   tmdb:
-    api-key: ${TMDB_API_KEY:your-tmdb-api-key-here}
+    api-key: ${TMDB_API_KEY}
     base-url: https://api.themoviedb.org/3
     image-base-url: https://image.tmdb.org/t/p
 
   # YouTube Data API
   youtube:
-    api-key: ${YOUTUBE_API_KEY:your-youtube-api-key-here}
+    api-key: ${YOUTUBE_API_KEY}
     base-url: https://www.googleapis.com/youtube/v3
 
   # OpenSubtitles
   opensubtitles:
-    api-key: ${OPENSUBTITLES_API_KEY:your-opensubtitles-api-key-here}
+    api-key: ${OPENSUBTITLES_API_KEY}
     base-url: https://api.opensubtitles.com/api/v1
 
 # ============================================
@@ -87,3 +97,11 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
     operations-sorter: method
+
+tools:
+  ytdlp:
+    path: tools/yt-dlp
+  ffmpeg:
+    path: tools/ffmpeg
+  ffprobe:
+    path: tools/ffprobe
