@@ -623,4 +623,94 @@ public class TmdbService {
             default -> "99-299 THB/mo";
         };
     }
+
+    // Search TMDB in a specific language for better matching foreign titles
+    // Example: "Sein letztes Rennen" (German) needs de-DE search to find "Back on Track"
+    @Cacheable(value = "movies", key = "#query + '-' + #language + '-multi'")
+    public List<MovieResponse> searchMoviesInLanguage(String query, String tmdbLanguage) {
+        try {
+            String url = baseUrl + "/search/movie?api_key=" + apiKey
+                    + "&query=" + URLEncoder.encode(query, StandardCharsets.UTF_8)
+                    + "&language=" + tmdbLanguage;
+
+            log.info("TMDB movie search in {}: {}", tmdbLanguage, query);
+
+            String response = webClient.get()
+                    .uri(url)
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block();
+
+            return parseMovieResults(response);
+
+        } catch (Exception e) {
+            log.error("Error searching movies in {}: {}", tmdbLanguage, e.getMessage());
+            return List.of();
+        }
+    }
+
+    // Search TV shows in specific language
+    @Cacheable(value = "tv", key = "#query + '-' + #language + '-multi'")
+    public List<MovieResponse> searchTvShowsInLanguage(String query, String tmdbLanguage) {
+        try {
+            String url = baseUrl + "/search/tv?api_key=" + apiKey
+                    + "&query=" + URLEncoder.encode(query, StandardCharsets.UTF_8)
+                    + "&language=" + tmdbLanguage;
+
+            log.info("TMDB TV search in {}: {}", tmdbLanguage, query);
+
+            String response = webClient.get()
+                    .uri(url)
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block();
+
+            return parseTvResults(response);
+
+        } catch (Exception e) {
+            log.error("Error searching TV in {}: {}", tmdbLanguage, e.getMessage());
+            return List.of();
+        }
+    }
+
+    // Convert country/language name to TMDB language code
+    public static String getTmdbLanguageCode(String language, String country) {
+        if (language != null) {
+            String lower = language.toLowerCase();
+            return switch (lower) {
+                case "korean" -> "ko-KR";
+                case "chinese", "mandarin" -> "zh-CN";
+                case "japanese" -> "ja-JP";
+                case "german" -> "de-DE";
+                case "french" -> "fr-FR";
+                case "spanish" -> "es-ES";
+                case "italian" -> "it-IT";
+                case "portuguese" -> "pt-BR";
+                case "russian" -> "ru-RU";
+                case "thai" -> "th-TH";
+                case "hindi" -> "hi-IN";
+                case "burmese", "myanmar" -> "en-US"; // TMDB doesn't support Burmese
+                case "arabic" -> "ar-SA";
+                case "turkish" -> "tr-TR";
+                case "vietnamese" -> "vi-VN";
+                case "indonesian" -> "id-ID";
+                case "english", "en" -> "en-US";
+                default -> null; // Fall back to default
+            };
+        }
+
+        if (country != null) {
+            String lower = country.toLowerCase();
+            if (lower.contains("korea")) return "ko-KR";
+            if (lower.contains("china") || lower.contains("chinese")) return "zh-CN";
+            if (lower.contains("japan")) return "ja-JP";
+            if (lower.contains("german")) return "de-DE";
+            if (lower.contains("france") || lower.contains("french")) return "fr-FR";
+            if (lower.contains("spain") || lower.contains("spanish")) return "es-ES";
+            if (lower.contains("italy") || lower.contains("italian")) return "it-IT";
+            if (lower.contains("thai")) return "th-TH";
+        }
+
+        return null;
+    }
 }

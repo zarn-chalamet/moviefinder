@@ -110,7 +110,17 @@ public class ChatService {
             return buildChineseShortDramaResponse(language, metadata, classification);
         }
 
-        // Step 4: Try hashtag search (fastest, most reliable when hashtags are specific)
+        // Step 4: FOR RECAP VIDEOS - go directly to recap analysis
+        // Recap videos have unreliable hashtags but reliable audio narration
+        if (classification.isRecapVideo()) {
+            log.info("Video is RECAP - skipping hashtag search, going to recap analysis");
+            ChatResponse recapResult = tryRecapAnalysis(url, metadata, classification, language);
+            if (recapResult != null) {
+                return recapResult;
+            }
+        }
+
+        // Step 5: For non-recap videos, try hashtag search (only if hashtags are specific enough)
         if (metadata.hasSpecificHashtags()) {
             log.info("Trying hashtag search with: {}", metadata.getSpecificHashtags());
             ChatResponse hashtagResult = tryHashtagSearch(metadata, classification, language);
@@ -120,7 +130,7 @@ public class ChatService {
             }
         }
 
-        // Step 5: Try explicit title if classifier found one (and it is not a channel name)
+        // Step 6: Try explicit title if classifier found one (and it is not a channel name)
         if (classification.isHasExplicitTitle() && classification.getExplicitTitle() != null
                 && !isLikelyChannelName(classification.getExplicitTitle())) {
             log.info("Trying explicit title search: {}", classification.getExplicitTitle());
@@ -130,13 +140,6 @@ public class ChatService {
                 log.info("Explicit title search succeeded");
                 return titleResult;
             }
-        }
-
-        // Step 6: Route based on classification
-        // Recap videos get special treatment - focus on audio narration
-        if (classification.isRecapVideo()) {
-            log.info("Routing to RECAP video analysis");
-            return tryRecapAnalysis(url, metadata, classification, language);
         }
 
         // Step 7: For non-recap videos, try metadata analysis first
@@ -208,12 +211,15 @@ public class ChatService {
         }
 
         // Priority 2: Try possible movies from the analysis
+        // Use smart search that considers country, year, and original language
         if (!analysis.getPossibleMovies().isEmpty()) {
             List<MovieResponse> foundCandidates = new ArrayList<>();
 
             for (PossibleMovie possible : analysis.getPossibleMovies()) {
-                log.info("Trying possible movie: {} ({})", possible.getTitle(), possible.getYear());
-                MovieResponse movie = smartTmdbSearch(possible.getTitle(), false);
+                log.info("Trying possible movie: {} ({}) - country: {}", 
+                    possible.getTitle(), possible.getYear(), possible.getOriginalCountry());
+                
+                MovieResponse movie = smartTmdbSearchWithContext(possible, false);
                 if (movie != null) {
                     foundCandidates.add(movie);
                     if (foundCandidates.size() >= 5) break;
@@ -292,7 +298,10 @@ public class ChatService {
     @AllArgsConstructor
     private static class PossibleMovie {
         private String title;
+        private String originalTitle;
         private String year;
+        private String originalCountry;   // south korea, usa, china, etc.
+        private String originalLanguage;  // korean, english, chinese, etc.
         private String reason;
     }
 
@@ -320,7 +329,10 @@ public class ChatService {
                         !title.equalsIgnoreCase("unknown")) {
                         movies.add(PossibleMovie.builder()
                             .title(title)
+                            .originalTitle(m.path("originalTitle").asText(""))
                             .year(m.path("year").asText(""))
+                            .originalCountry(m.path("originalCountry").asText(""))
+                            .originalLanguage(m.path("originalLanguage").asText(""))
                             .reason(m.path("reason").asText(""))
                             .build());
                     }
@@ -345,6 +357,319 @@ public class ChatService {
             log.warn("Failed to parse recap analysis JSON: {}", e.getMessage());
             return null;
         }
+    }
+
+    // Search TMDB with country/language awareness for better disambiguation
+    // For foreign films, searches in the original language first, then falls back to English
+    private MovieResponse smartTmdbSearchWithContext(PossibleMovie possible, boolean preferTv) {
+        String title = possible.getTitle();
+        if (title == null || title.isBlank()) return null;
+
+        log.info("Smart search for '{}' (year: {}, country: {}, language: {})",
+            title, possible.getYear(), possible.getOriginalCountry(), possible.getOriginalLanguage());
+
+        List<MovieResponse> allCandidates = new ArrayList<>();
+
+        // Strategy 1: Search in the original language if it's a foreign film
+        String tmdbLangCode = TmdbService.getTmdbLanguageCode(
+            possible.getOriginalLanguage(), possible.getOriginalCountry());
+
+        if (tmdbLangCode != null && !tmdbLangCode.equals("en-US")) {
+            log.info("Searching TMDB in original language: {}", tmdbLangCode);
+            try {
+                if (preferTv) {
+                    allCandidates.addAll(tmdbService.searchTvShowsInLanguage(title, tmdbLangCode));
+                    allCandidates.addAll(tmdbService.searchMoviesInLanguage(title, tmdbLangCode));
+                } else {
+                    allCandidates.addAll(tmdbService.searchMoviesInLanguage(title, tmdbLangCode));
+                    allCandidates.addAll(tmdbService.searchTvShowsInLanguage(title, tmdbLangCode));
+                }
+                log.info("Language-specific search returned {} results", allCandidates.size());
+            } catch (Exception e) {
+                log.warn("Language-specific search failed: {}", e.getMessage());
+            }
+        }
+
+        // Strategy 1.5: Try originalTitle if provided
+        // Sometimes Gemini gives us the original title separately
+        if (possible.getOriginalTitle() != null && !possible.getOriginalTitle().isBlank()
+                && !possible.getOriginalTitle().equalsIgnoreCase(title)) {
+            log.info("Also trying originalTitle: {}", possible.getOriginalTitle());
+            try {
+                if (tmdbLangCode != null && !tmdbLangCode.equals("en-US")) {
+                    allCandidates.addAll(tmdbService.searchMoviesInLanguage(
+                        possible.getOriginalTitle(), tmdbLangCode));
+                    allCandidates.addAll(tmdbService.searchTvShowsInLanguage(
+                        possible.getOriginalTitle(), tmdbLangCode));
+                }
+                allCandidates.addAll(tmdbService.searchMovies(possible.getOriginalTitle(), "en"));
+                allCandidates.addAll(tmdbService.searchTvShows(possible.getOriginalTitle(), "en"));
+            } catch (Exception e) {
+                log.warn("Original title search failed: {}", e.getMessage());
+            }
+        }
+
+        // Strategy 2: Also search in English (in case Gemini gave the original title)
+        try {
+            if (preferTv) {
+                allCandidates.addAll(tmdbService.searchTvShows(title, "en"));
+                allCandidates.addAll(tmdbService.searchMovies(title, "en"));
+            } else {
+                allCandidates.addAll(tmdbService.searchMovies(title, "en"));
+                allCandidates.addAll(tmdbService.searchTvShows(title, "en"));
+            }
+        } catch (Exception e) {
+            log.warn("English search failed: {}", e.getMessage());
+        }
+
+        // Strategy 3: Try title variations if we found nothing
+        if (allCandidates.isEmpty()) {
+            log.info("No results, trying title variations");
+            MovieResponse result = smartTmdbSearch(title, preferTv);
+            if (result != null) return result;
+        }
+
+        if (allCandidates.isEmpty()) {
+            log.info("All searches failed for: {}", title);
+            return null;
+        }
+
+        // Deduplicate by TMDB ID
+        List<MovieResponse> uniqueCandidates = new ArrayList<>();
+        java.util.Set<Long> seenIds = new java.util.HashSet<>();
+        for (MovieResponse c : allCandidates) {
+            if (c.getId() != null && seenIds.add(c.getId())) {
+                uniqueCandidates.add(c);
+            }
+        }
+
+        log.info("Found {} unique candidates", uniqueCandidates.size());
+
+        if (uniqueCandidates.size() == 1) {
+            return getFullDetails(uniqueCandidates.get(0));
+        }
+
+        // Score each candidate
+        MovieResponse bestMatch = null;
+        int bestScore = -1;
+
+        for (MovieResponse candidate : uniqueCandidates) {
+            int score = scoreCandidate(candidate, possible);
+            log.info("Candidate: '{}' ({}) origTitle: '{}' - score: {}",
+                candidate.getTitle(), candidate.getYear(),
+                candidate.getOriginalTitle(), score);
+
+            if (score > bestScore) {
+                bestScore = score;
+                bestMatch = candidate;
+            }
+        }
+
+        if (bestMatch != null) {
+            log.info("Best match: '{}' ({}) with score {}",
+                bestMatch.getTitle(), bestMatch.getYear(), bestScore);
+            return getFullDetails(bestMatch);
+        }
+
+        return getFullDetails(uniqueCandidates.get(0));
+    }
+
+        // Score a candidate based on year, country, language, and title match
+    // Higher score = better match
+    // Key principle: Original title character set is the STRONGEST signal for country
+    private int scoreCandidate(MovieResponse candidate, PossibleMovie expected) {
+        int score = 0;
+
+        // Detect character sets in the ORIGINAL title (before scoring)
+        String origTitle = candidate.getOriginalTitle();
+        boolean hasKorean = false;
+        boolean hasChinese = false;
+        boolean hasJapanese = false;
+        boolean hasThai = false;
+        boolean hasCyrillic = false;
+        boolean hasArabic = false;
+        
+        if (origTitle != null && !origTitle.isBlank()) {
+            // Check each character for its Unicode range
+            for (int i = 0; i < origTitle.length(); i++) {
+                int cp = origTitle.codePointAt(i);
+                if (cp >= 0xAC00 && cp <= 0xD7A3) hasKorean = true;
+                else if (cp >= 0x4E00 && cp <= 0x9FFF) hasChinese = true;
+                else if ((cp >= 0x3040 && cp <= 0x309F) || (cp >= 0x30A0 && cp <= 0x30FF)) hasJapanese = true;
+                else if (cp >= 0x0E00 && cp <= 0x0E7F) hasThai = true;
+                else if (cp >= 0x0400 && cp <= 0x04FF) hasCyrillic = true;
+                else if (cp >= 0x0600 && cp <= 0x06FF) hasArabic = true;
+            }
+            
+            log.debug("Char detection for '{}': kr={}, cn={}, jp={}, th={}", 
+                origTitle, hasKorean, hasChinese, hasJapanese, hasThai);
+        }
+        
+        // Also check if candidate.title (display title) has these characters
+        // Because TMDB sometimes puts original in title field
+        String displayTitle = candidate.getTitle();
+        if (displayTitle != null && !displayTitle.isBlank() && !hasKorean && !hasChinese && !hasJapanese && !hasThai) {
+            for (int i = 0; i < displayTitle.length(); i++) {
+                int cp = displayTitle.codePointAt(i);
+                if (cp >= 0xAC00 && cp <= 0xD7A3) hasKorean = true;
+                else if (cp >= 0x4E00 && cp <= 0x9FFF) hasChinese = true;
+                else if ((cp >= 0x3040 && cp <= 0x309F) || (cp >= 0x30A0 && cp <= 0x30FF)) hasJapanese = true;
+                else if (cp >= 0x0E00 && cp <= 0x0E7F) hasThai = true;
+            }
+        }
+
+        // ============================================
+        // COUNTRY/LANGUAGE MATCHING (STRONGEST SIGNAL)
+        // Apply this FIRST because it's the most decisive
+        // ============================================
+        String expectedCountry = expected.getOriginalCountry();
+        String expectedLang = expected.getOriginalLanguage();
+        
+        if (expectedCountry != null || expectedLang != null) {
+            String country = expectedCountry != null ? expectedCountry.toLowerCase() : "";
+            String lang = expectedLang != null ? expectedLang.toLowerCase() : "";
+            
+            boolean expectKorean = country.contains("korea") || lang.contains("korean");
+            boolean expectChinese = country.contains("china") || country.contains("chinese") 
+                || lang.contains("chinese") || lang.contains("mandarin");
+            boolean expectJapanese = country.contains("japan") || lang.contains("japanese");
+            boolean expectThai = country.contains("thai") || country.contains("thailand") 
+                || lang.contains("thai");
+            
+            // HUGE bonus for matching character set
+            if (expectKorean && hasKorean) {
+                score += 100;
+                log.debug("Korean match bonus: +100");
+            } else if (expectChinese && hasChinese) {
+                score += 100;
+            } else if (expectJapanese && hasJapanese) {
+                score += 100;
+            } else if (expectThai && hasThai) {
+                score += 100;
+            }
+            
+            // HUGE penalty for expected Asian country but no Asian chars in title
+            // This filters out English movies with same name
+            if ((expectKorean || expectChinese || expectJapanese || expectThai) 
+                    && !hasKorean && !hasChinese && !hasJapanese && !hasThai) {
+                score -= 80;
+                log.debug("Asian country expected but no Asian chars: -80");
+            }
+        }
+
+        // ============================================
+        // YEAR MATCHING (Very important)
+        // ============================================
+        boolean hasExpectedYear = expected.getYear() != null && !expected.getYear().isBlank() &&
+            !"unknown".equalsIgnoreCase(expected.getYear());
+        boolean hasCandidateYear = candidate.getYear() != null && !candidate.getYear().isBlank();
+
+        if (hasExpectedYear && hasCandidateYear) {
+            try {
+                int expectedYear = Integer.parseInt(expected.getYear().trim());
+                int candidateYear = Integer.parseInt(candidate.getYear().trim());
+                int yearDiff = Math.abs(expectedYear - candidateYear);
+
+                if (yearDiff == 0) score += 80;
+                else if (yearDiff == 1) score += 40;
+                else if (yearDiff <= 2) score += 10;
+                else if (yearDiff <= 5) score -= 20;
+                else score -= 50;
+            } catch (NumberFormatException e) {
+                // Ignore
+            }
+        } else if (hasExpectedYear && !hasCandidateYear) {
+            score -= 30; // Suspicious - incomplete entry
+        }
+
+        // ============================================
+        // TITLE MATCHING
+        // ============================================
+        // Original title matching against expected originalTitle (very strong)
+        if (candidate.getOriginalTitle() != null && expected.getOriginalTitle() != null 
+                && !expected.getOriginalTitle().isBlank()) {
+            String origLower = candidate.getOriginalTitle().toLowerCase().trim();
+            String expOrigLower = expected.getOriginalTitle().toLowerCase().trim();
+            
+            if (origLower.equals(expOrigLower)) {
+                score += 60;
+            } else if (origLower.contains(expOrigLower) || expOrigLower.contains(origLower)) {
+                score += 30;
+            }
+        }
+        
+        // Original title matching against expected title (medium)
+        if (candidate.getOriginalTitle() != null && expected.getTitle() != null) {
+            String origLower = candidate.getOriginalTitle().toLowerCase().trim();
+            String expLower = expected.getTitle().toLowerCase().trim();
+            
+            String expMain = expLower;
+            if (expMain.contains("(")) {
+                expMain = expMain.substring(0, expMain.indexOf("(")).trim();
+            }
+            
+            if (origLower.equals(expLower) || origLower.equals(expMain)) {
+                score += 25;
+            } else if (origLower.contains(expMain) && expMain.length() > 3) {
+                score += 10;
+            }
+        }
+        
+        // Displayed title matching (medium)
+        if (candidate.getTitle() != null && expected.getTitle() != null) {
+            String titleLower = candidate.getTitle().toLowerCase().trim();
+            String expLower = expected.getTitle().toLowerCase().trim();
+            
+            String expMain = expLower;
+            if (expMain.contains("(")) {
+                expMain = expMain.substring(0, expMain.indexOf("(")).trim();
+            }
+            
+            if (titleLower.equals(expLower) || titleLower.equals(expMain)) {
+                score += 20;
+            } else if (titleLower.contains(expMain) && expMain.length() > 3) {
+                score += 10;
+            }
+        }
+
+        // European language word detection (for Latin script films)
+        if (origTitle != null && expectedCountry != null && 
+            !hasKorean && !hasChinese && !hasJapanese && !hasThai) {
+            String country = expectedCountry.toLowerCase();
+            String origLower = origTitle.toLowerCase();
+            
+            if (country.contains("german")) {
+                if (origLower.contains("sein") || origLower.contains("das ") || 
+                    origLower.contains("der ") || origLower.contains("die ") ||
+                    origLower.contains("und ") || origLower.contains("mit ") ||
+                    origLower.contains("letzte") || origLower.contains("neue")) {
+                    score += 40;
+                }
+            }
+            if (country.contains("france") || country.contains("french")) {
+                if (origLower.contains("le ") || origLower.contains("la ") ||
+                    origLower.contains("les ") || origLower.contains("des ") ||
+                    origLower.contains("un ") || origLower.contains("une ")) {
+                    score += 40;
+                }
+            }
+        }
+
+        // POPULARITY (minor tiebreaker only)
+        if (candidate.getVoteCount() != null && candidate.getVoteCount() > 100) {
+            score += Math.min(candidate.getVoteCount() / 500, 5);
+        }
+        
+        // COMPLETENESS BONUS
+        if (candidate.getOverview() != null && !candidate.getOverview().isBlank() 
+                && candidate.getOverview().length() > 30) {
+            score += 5;
+        }
+        if (candidate.getPosterUrl() != null && !candidate.getPosterUrl().isBlank()) {
+            score += 5;
+        }
+
+        return score;
     }
 
     // Show multiple candidates when we have several possibilities
@@ -781,15 +1106,34 @@ public class ChatService {
 
     // Helpers
 
+    // Get full TMDB details - tries movie first (most content is movies)
+    // Falls back to TV if movie lookup fails
     private MovieResponse getFullDetails(MovieResponse partial) {
         if (partial == null) return null;
+        
+        // Try movie first
+        try {
+            MovieResponse movie = tmdbService.getMovieById(partial.getId(), "en");
+            if (movie != null && movie.getTitle() != null && !movie.getTitle().isBlank()) {
+                return movie;
+            }
+        } catch (Exception e) {
+            // Not a movie ID, try TV
+        }
+        
+        // Try TV show
         try {
             MovieResponse tv = tmdbService.getTvShowById(partial.getId(), "en");
-            if (tv != null && tv.getTitle() != null) return tv;
-            return tmdbService.getMovieById(partial.getId(), "en");
+            if (tv != null && tv.getTitle() != null && !tv.getTitle().isBlank()) {
+                return tv;
+            }
         } catch (Exception e) {
-            return partial;
+            // Not a TV ID either
         }
+        
+        // Both failed - return partial data (still has ID, title, year)
+        log.warn("Could not enrich details for id {}, using search result", partial.getId());
+        return partial;
     }
 
     private MovieResponse findMovieFromVisionResponse(String visionReply,

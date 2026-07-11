@@ -50,7 +50,23 @@ public class UrlAnalyzerService {
 
         // People/gender terms
         "man", "woman", "boy", "girl", "men", "women", "boys", "girls",
-        "people", "kid", "kids", "baby", "teen", "adult"
+        "people", "kid", "kids", "baby", "teen", "adult",
+
+        // Credit/attribution tags (common in Myanmar/Thai Facebook)
+        "crd", "credit", "credits", "cred", "crd_to_owner", 
+        "crd_to_owner_with_respect", "credittoowner", "creditowner",
+        "owner", "respect", "notmine", "notmyvideo", "notmycontent",
+        
+        // Follow-related spam
+        "follower", "followers", "following", "follow", "followme",
+        "followback", "followforfollow", "f4f", "l4l",
+        
+        // Channel name variations
+        "nighttime", "nighttimerecap", "night", "recap", "recaps",
+        "recapchannel", "movierecap", "kdramarecap",
+        
+        // Engagement bait
+        "engagement", "views", "reactions", "shares", "impressions"
     ));
 
     public VideoMetadata analyzeUrl(String url) {

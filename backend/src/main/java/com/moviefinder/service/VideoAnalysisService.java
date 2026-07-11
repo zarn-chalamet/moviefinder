@@ -545,9 +545,12 @@ public class VideoAnalysisService {
               "storyDescription": "2-3 sentence summary of what narrator describes",
               "possibleMovies": [
                 {
-                  "title": "Possible movie title",
+                  "title": "English or international title (most searchable)",
+                  "originalTitle": "Original language title (e.g. Sein letztes Rennen, 보이스, 寄生虫)",
                   "year": "2020 or unknown",
-                  "reason": "Why this could match"
+                  "originalCountry": "south korea or usa or china or japan or thailand or germany or india or unknown",
+                  "originalLanguage": "korean or english or chinese or japanese or thai or german or hindi or unknown",
+                  "reason": "Why this could match - include visual evidence"
                 }
               ],
               "visualStyle": "hollywood or korean drama or chinese drama or indie or documentary",
@@ -555,12 +558,20 @@ public class VideoAnalysisService {
               "keyElements": "Notable visual or story elements"
             }
 
-            RULES:
+                        RULES:
             - If narrator clearly says a title, put it in titleFromAudio with HIGH confidence
             - If unclear, list 2-4 possibleMovies
             - Do NOT list the same fake title multiple times
             - Do NOT identify the recap channel name as the movie
             - It is BETTER to list multiple possibilities than one wrong answer
+            - LOOK for visible text overlays with movie title in the frames
+            - IDENTIFY country of origin from actors, setting, and language
+            - Korean actors have Korean features and often Korean text is visible
+            - Chinese productions often have Chinese subtitles or hanzi visible
+            - PAY ATTENTION to visible logos, brands, or text on hard hats, buildings, signs
+            - For foreign films, provide BOTH English title AND original title if possible
+              Example: title: "Parasite", originalTitle: "기생충"
+              Example: title: "Back on Track", originalTitle: "Sein letztes Rennen"
             """,
             langInstruction,
             frameCount,
@@ -616,6 +627,8 @@ public class VideoAnalysisService {
                 {
                   "title": "Movie or show title",
                   "year": "year or unknown",
+                  "originalCountry": "country of origin",
+                  "originalLanguage": "original language",
                   "reason": "Why this matches"
                 }
               ],
