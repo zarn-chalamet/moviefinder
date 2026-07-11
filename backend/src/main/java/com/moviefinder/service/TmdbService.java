@@ -35,13 +35,11 @@ public class TmdbService {
         this.objectMapper = objectMapper;
     }
 
-    /**
-     * Search for movies by query
-     */
+    // Search for movies by query
     @Cacheable(value = "movies", key = "#query + '-' + #language")
     public List<MovieResponse> searchMovies(String query, String language) {
         try {
-            String url = baseUrl + "/search/movie?api_key=" + apiKey 
+            String url = baseUrl + "/search/movie?api_key=" + apiKey
                     + "&query=" + URLEncoder.encode(query, StandardCharsets.UTF_8)
                     + "&language=" + getTmdbLanguage(language);
 
@@ -61,14 +59,12 @@ public class TmdbService {
         }
     }
 
-    /**
-     * Get movie details by ID
-     */
+    // Get movie details by ID including credits, videos, streaming providers
     @Cacheable(value = "movies", key = "'movie-' + #movieId + '-' + #language")
     public MovieResponse getMovieById(Long movieId, String language) {
         try {
-            String url = baseUrl + "/movie/" + movieId 
-                    + "?api_key=" + apiKey 
+            String url = baseUrl + "/movie/" + movieId
+                    + "?api_key=" + apiKey
                     + "&language=" + getTmdbLanguage(language)
                     + "&append_to_response=credits,videos,similar,watch/providers";
 
@@ -86,13 +82,11 @@ public class TmdbService {
         }
     }
 
-    /**
-     * Get trending movies
-     */
+    // Get trending movies for the week
     @Cacheable(value = "trending", key = "'trending-' + #language")
     public List<MovieResponse> getTrendingMovies(String language) {
         try {
-            String url = baseUrl + "/trending/movie/week?api_key=" + apiKey 
+            String url = baseUrl + "/trending/movie/week?api_key=" + apiKey
                     + "&language=" + getTmdbLanguage(language);
 
             String response = webClient.get()
@@ -109,9 +103,7 @@ public class TmdbService {
         }
     }
 
-    /**
-     * Get streaming providers for a movie
-     */
+    // Get streaming providers for a movie in a specific country
     @Cacheable(value = "streaming", key = "'streaming-' + #movieId + '-' + #country")
     public List<MovieResponse.StreamingProvider> getStreamingProviders(Long movieId, String country) {
         try {
@@ -131,12 +123,10 @@ public class TmdbService {
         }
     }
 
-    /**
-     * Get similar movies
-     */
+    // Get similar movies to a given movie
     public List<MovieResponse> getSimilarMovies(Long movieId, String language, int limit) {
         try {
-            String url = baseUrl + "/movie/" + movieId + "/similar?api_key=" + apiKey 
+            String url = baseUrl + "/movie/" + movieId + "/similar?api_key=" + apiKey
                     + "&language=" + getTmdbLanguage(language);
 
             String response = webClient.get()
@@ -154,17 +144,11 @@ public class TmdbService {
         }
     }
 
-    // ============================================
-    // Series and TV show methods
-    // ============================================
-
-    /**
-     * Search TV shows (K-dramas, anime, series)
-     */
+    // Search TV shows including K-dramas, anime, series
     @Cacheable(value = "tv", key = "#query + '-' + #language")
     public List<MovieResponse> searchTvShows(String query, String language) {
         try {
-            String url = baseUrl + "/search/tv?api_key=" + apiKey 
+            String url = baseUrl + "/search/tv?api_key=" + apiKey
                     + "&query=" + URLEncoder.encode(query, StandardCharsets.UTF_8)
                     + "&language=" + getTmdbLanguage(language);
 
@@ -184,14 +168,12 @@ public class TmdbService {
         }
     }
 
-    /**
-     * Get TV show details by ID
-     */
+    // Get TV show details by ID
     @Cacheable(value = "tv", key = "'tv-' + #tvId + '-' + #language")
     public MovieResponse getTvShowById(Long tvId, String language) {
         try {
-            String url = baseUrl + "/tv/" + tvId 
-                    + "?api_key=" + apiKey 
+            String url = baseUrl + "/tv/" + tvId
+                    + "?api_key=" + apiKey
                     + "&language=" + getTmdbLanguage(language)
                     + "&append_to_response=credits,videos";
 
@@ -209,16 +191,87 @@ public class TmdbService {
         }
     }
 
-    /**
-     * Parse TV search results
-     */
+    // Search TMDB using a single hashtag as the search term
+    // Example: "YourHonor" becomes "Your Honor" and searches both TV and movies
+    public List<MovieResponse> searchByHashtag(String hashtag) {
+        if (hashtag == null || hashtag.isBlank()) return List.of();
+
+        String searchTerm = cleanHashtagToSearchTerm(hashtag);
+
+        if (searchTerm.length() < 2) return List.of();
+
+        log.info("Hashtag search: #{} converted to search term: '{}'", hashtag, searchTerm);
+
+        List<MovieResponse> results = new ArrayList<>();
+
+        // Try TV shows first because most Myanmar/Thai Facebook content is K-dramas and series
+        List<MovieResponse> tvResults = searchTvShows(searchTerm, "en");
+        results.addAll(tvResults);
+
+        // Also try movies
+        List<MovieResponse> movieResults = searchMovies(searchTerm, "en");
+        results.addAll(movieResults);
+
+        return results;
+    }
+
+    // Search TMDB using a list of hashtags, returns results from first successful match
+    public List<MovieResponse> searchByHashtags(List<String> hashtags) {
+        if (hashtags == null || hashtags.isEmpty()) return List.of();
+
+        for (String hashtag : hashtags) {
+            List<MovieResponse> results = searchByHashtag(hashtag);
+
+            if (!results.isEmpty()) {
+                log.info("Found {} results for hashtag #{}", results.size(), hashtag);
+                return results;
+            }
+
+            log.info("No results for hashtag #{}, trying next", hashtag);
+        }
+
+        log.info("No results found for any of the {} hashtags", hashtags.size());
+        return List.of();
+    }
+
+    // Convert a hashtag string into a readable search term
+    // Examples:
+    //   YourHonor          becomes  Your Honor
+    //   AgentKimReactivated becomes  Agent Kim Reactivated
+    //   agentkim            stays    agentkim (short, leave as is)
+    private String cleanHashtagToSearchTerm(String hashtag) {
+        if (hashtag == null) return "";
+
+        // Remove # symbol if present
+        String clean = hashtag.startsWith("#") ? hashtag.substring(1) : hashtag;
+
+        // If it already has spaces, return as is
+        if (clean.contains(" ")) return clean.trim();
+
+        // Short hashtags - leave as is, no need to split
+        if (clean.length() <= 6) return clean;
+
+        // Split CamelCase into words
+        // YourHonor becomes Your Honor
+        // AgentKimReactivated becomes Agent Kim Reactivated
+        String spaced = clean
+            .replaceAll("([a-z])([A-Z])", "$1 $2")       // split lowercase then uppercase
+            .replaceAll("([A-Z]+)([A-Z][a-z])", "$1 $2") // split consecutive uppercase
+            .replaceAll("_(\\w)", " $1")                   // replace underscore with space
+            .trim();
+
+        return spaced;
+    }
+
+    // Private parsing methods
+
     private List<MovieResponse> parseTvResults(String jsonResponse) {
         List<MovieResponse> shows = new ArrayList<>();
-        
+
         try {
             JsonNode root = objectMapper.readTree(jsonResponse);
             JsonNode results = root.path("results");
-            
+
             if (results.isArray()) {
                 for (JsonNode node : results) {
                     String firstAirDate = node.path("first_air_date").asText("");
@@ -242,17 +295,14 @@ public class TmdbService {
         } catch (Exception e) {
             log.error("Error parsing TV results: {}", e.getMessage());
         }
-        
+
         return shows;
     }
 
-    /**
-     * Parse TV show details
-     */
     private MovieResponse parseTvDetails(String jsonResponse) {
         try {
             JsonNode node = objectMapper.readTree(jsonResponse);
-            
+
             String firstAirDate = node.path("first_air_date").asText("");
             String year = firstAirDate.length() >= 4 ? firstAirDate.substring(0, 4) : "";
 
@@ -280,13 +330,13 @@ public class TmdbService {
             // Parse credits
             JsonNode credits = node.path("credits");
             if (!credits.isMissingNode()) {
-                // Creator/Director
+                // Use first creator as director equivalent
                 for (JsonNode creator : node.path("created_by")) {
                     builder.director(creator.path("name").asText());
                     break;
                 }
 
-                // Cast
+                // Top 5 cast members
                 List<String> cast = new ArrayList<>();
                 int castCount = 0;
                 for (JsonNode castMember : credits.path("cast")) {
@@ -297,11 +347,11 @@ public class TmdbService {
                 builder.cast(cast);
             }
 
-            // Trailer
+            // Get first YouTube trailer
             JsonNode videos = node.path("videos").path("results");
             if (videos.isArray()) {
                 for (JsonNode video : videos) {
-                    if ("Trailer".equals(video.path("type").asText()) && 
+                    if ("Trailer".equals(video.path("type").asText()) &&
                         "YouTube".equals(video.path("site").asText())) {
                         String key = video.path("key").asText();
                         builder.trailer(MovieResponse.TrailerInfo.builder()
@@ -323,17 +373,13 @@ public class TmdbService {
         }
     }
 
-    // ============================================
-    // Private parsing methods
-    // ============================================
-
     private List<MovieResponse> parseMovieResults(String jsonResponse) {
         List<MovieResponse> movies = new ArrayList<>();
-        
+
         try {
             JsonNode root = objectMapper.readTree(jsonResponse);
             JsonNode results = root.path("results");
-            
+
             if (results.isArray()) {
                 for (JsonNode movieNode : results) {
                     movies.add(parseBasicMovie(movieNode));
@@ -342,7 +388,7 @@ public class TmdbService {
         } catch (Exception e) {
             log.error("Error parsing movie results: {}", e.getMessage());
         }
-        
+
         return movies;
     }
 
@@ -368,7 +414,7 @@ public class TmdbService {
     private MovieResponse parseMovieDetails(String jsonResponse) {
         try {
             JsonNode node = objectMapper.readTree(jsonResponse);
-            
+
             String releaseDate = node.path("release_date").asText("");
             String year = releaseDate.length() >= 4 ? releaseDate.substring(0, 4) : "";
 
@@ -397,10 +443,9 @@ public class TmdbService {
             }
             builder.genres(genres);
 
-            // Parse credits (director & cast)
+            // Parse credits - director and top cast
             JsonNode credits = node.path("credits");
             if (!credits.isMissingNode()) {
-                // Director
                 for (JsonNode crew : credits.path("crew")) {
                     if ("Director".equals(crew.path("job").asText())) {
                         builder.director(crew.path("name").asText());
@@ -408,7 +453,6 @@ public class TmdbService {
                     }
                 }
 
-                // Cast (top 5)
                 List<String> cast = new ArrayList<>();
                 int castCount = 0;
                 for (JsonNode castMember : credits.path("cast")) {
@@ -419,11 +463,11 @@ public class TmdbService {
                 builder.cast(cast);
             }
 
-            // Parse trailer
+            // Get first YouTube trailer
             JsonNode videos = node.path("videos").path("results");
             if (videos.isArray()) {
                 for (JsonNode video : videos) {
-                    if ("Trailer".equals(video.path("type").asText()) && 
+                    if ("Trailer".equals(video.path("type").asText()) &&
                         "YouTube".equals(video.path("site").asText())) {
                         String key = video.path("key").asText();
                         builder.trailer(MovieResponse.TrailerInfo.builder()
@@ -447,13 +491,13 @@ public class TmdbService {
 
     private List<MovieResponse.StreamingProvider> parseStreamingProviders(String jsonResponse, String country) {
         List<MovieResponse.StreamingProvider> providers = new ArrayList<>();
-        
+
         try {
             JsonNode root = objectMapper.readTree(jsonResponse);
             JsonNode results = root.path("results").path(country);
-            
+
             if (!results.isMissingNode()) {
-                // Flatrate (subscription)
+                // Subscription streaming
                 for (JsonNode provider : results.path("flatrate")) {
                     providers.add(MovieResponse.StreamingProvider.builder()
                             .platform(provider.path("provider_name").asText())
@@ -466,7 +510,7 @@ public class TmdbService {
                             .build());
                 }
 
-                // Free
+                // Free streaming
                 for (JsonNode provider : results.path("free")) {
                     providers.add(MovieResponse.StreamingProvider.builder()
                             .platform(provider.path("provider_name").asText())
@@ -479,13 +523,13 @@ public class TmdbService {
                             .build());
                 }
 
-                // Rent
+                // Rental streaming
                 for (JsonNode provider : results.path("rent")) {
                     providers.add(MovieResponse.StreamingProvider.builder()
                             .platform(provider.path("provider_name").asText())
                             .type("rent")
                             .isFree(false)
-                            .price("฿99-199")
+                            .price("499-199 THB")
                             .country(country)
                             .logo(getImageUrl(provider.path("logo_path").asText(), "w92"))
                             .url(results.path("link").asText())
@@ -495,12 +539,11 @@ public class TmdbService {
         } catch (Exception e) {
             log.error("Error parsing streaming providers: {}", e.getMessage());
         }
-        
-        // Always add default providers if none found
+
         if (providers.isEmpty()) {
             return generateDefaultStreamingProviders(0L);
         }
-        
+
         return providers;
     }
 
@@ -508,18 +551,17 @@ public class TmdbService {
         return List.of(
             MovieResponse.StreamingProvider.builder()
                     .platform("Netflix").type("subscription").isFree(false)
-                    .price("฿419/mo").country("TH").logo("🔴").url("https://netflix.com").build(),
+                    .price("419 THB/mo").country("TH").logo("").url("https://netflix.com").build(),
             MovieResponse.StreamingProvider.builder()
                     .platform("TrueID").type("free").isFree(true)
-                    .price("Free").country("TH").logo("🟢").url("https://trueid.net").build(),
+                    .price("Free").country("TH").logo("").url("https://trueid.net").build(),
             MovieResponse.StreamingProvider.builder()
                     .platform("Disney+").type("subscription").isFree(false)
-                    .price("฿399/mo").country("TH").logo("🔵").url("https://disneyplus.com").build()
+                    .price("399 THB/mo").country("TH").logo("").url("https://disneyplus.com").build()
         );
     }
 
     private List<String> parseGenreIds(JsonNode genreIds) {
-        // Map common genre IDs to names
         List<String> genres = new ArrayList<>();
         if (genreIds.isArray()) {
             for (JsonNode id : genreIds) {
@@ -565,20 +607,20 @@ public class TmdbService {
     private String getTmdbLanguage(String language) {
         return switch (language) {
             case "th" -> "th-TH";
-            case "my" -> "en-US"; // TMDB doesn't support Burmese, fallback to English
+            case "my" -> "en-US"; // TMDB does not support Burmese, fallback to English
             default -> "en-US";
         };
     }
 
     private String getDefaultPrice(String providerName) {
         return switch (providerName.toLowerCase()) {
-            case "netflix" -> "฿419/mo";
-            case "disney plus", "disney+" -> "฿399/mo";
-            case "amazon prime video" -> "฿149/mo";
-            case "hbo go" -> "฿199/mo";
-            case "wetv" -> "฿59/mo";
-            case "viu" -> "฿119/mo";
-            default -> "฿99-299/mo";
+            case "netflix" -> "419 THB/mo";
+            case "disney plus", "disney+" -> "399 THB/mo";
+            case "amazon prime video" -> "149 THB/mo";
+            case "hbo go" -> "199 THB/mo";
+            case "wetv" -> "59 THB/mo";
+            case "viu" -> "119 THB/mo";
+            default -> "99-299 THB/mo";
         };
     }
 }

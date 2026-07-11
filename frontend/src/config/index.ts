@@ -9,7 +9,7 @@ export const config = {
   USE_MOCK_API: import.meta.env.VITE_USE_MOCK_API === 'true' ? true : false,
   
   // API Timeout (ms)
-  API_TIMEOUT: 90000,
+  API_TIMEOUT: 9000000,
   
   // App Info
   APP_NAME: 'MovieFinder',
