@@ -2,6 +2,8 @@ package com.moviefinder.dto.request;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,18 +28,28 @@ public class ChatRequest {
     
     private List<Message> history;
 
+    // Accept extra fields from frontend without failing
+    // Frontend sends full Movie object, we only need a few fields
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class MovieContext {
         private Long tmdbId;
+        private Long id;     
         private String title;
         private String year;
+        
+        // Helper: returns tmdbId if present, otherwise id
+        public Long getEffectiveId() {
+            return tmdbId != null ? tmdbId : id;
+        }
     }
 
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Message {
         private String role;
         private String content;

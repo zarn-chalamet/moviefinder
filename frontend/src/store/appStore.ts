@@ -5,6 +5,19 @@ import { mockMovies } from '../data/mockData';
 import { chatService } from '../services/chatService';
 import config from '../config';
 
+// Helper function: Find the most recent movie discussed in chat
+// Used for follow-up questions like "Show me similar movies"
+// Without this, backend has no idea which movie the user is asking about
+function getLastMovieContext(messages: ChatMessage[]): Movie | null {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const msg = messages[i];
+    if (msg.role === 'assistant' && msg.movieContext) {
+      return msg.movieContext;
+    }
+  }
+  return null;
+}
+
 interface AppState {
   // Language
   language: Language;
@@ -90,7 +103,7 @@ const useAppStore = create<AppState>((set, get) => ({
   messages: [],
   isTyping: false,
 
-  sendMessage: async (content) => {
+    sendMessage: async (content) => {
     const { language, messages } = get();
 
     const userMessage: ChatMessage = {
@@ -111,12 +124,20 @@ const useAppStore = create<AppState>((set, get) => ({
       content: m.content
     }));
 
+    // Find the most recent movie discussed in conversation
+    // This enables follow-up questions like "similar movies" to work
+    const lastMovieContext = getLastMovieContext(messages);
+    
+    if (lastMovieContext) {
+      console.log('Sending with movie context:', lastMovieContext.title);
+    }
+
     try {
       const response = await chatService.sendMessage({
         message: content,
         language,
         conversationId: null,
-        movieContext: null,
+        movieContext: lastMovieContext,
         history: history.length > 0 ? history : undefined
       });
 

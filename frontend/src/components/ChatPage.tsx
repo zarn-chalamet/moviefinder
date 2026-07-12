@@ -218,7 +218,12 @@ function AnalysisMethodBadge({ method }: { method?: string }) {
     recap_candidates: { icon: '🔍', label: 'Multiple recap matches' },
     audio_narration: { icon: '🎙️', label: 'Detected from audio' },
     vision: { icon: '👁️', label: 'Video frame analysis' },
+    vision_only: { icon: '👁️', label: 'Visual analysis only' },
+    vision_candidates: { icon: '🔍', label: 'Multiple visual matches' },
+    vision_high: { icon: '✨', label: 'High confidence vision' },
+    vision_unknown: { icon: '❓', label: 'Uncertain identification' },
     classification: { icon: '🎯', label: 'Content classified' },
+    similar_movies: { icon: '🎬', label: 'Similar movie suggestions' },
     text: { icon: '📝', label: 'Text analysis' },
   };
 
@@ -384,11 +389,12 @@ function MessageBubble({
           />
         )}
 
-        {/* Multiple Candidates */}
+        {/* Multiple Candidates or Recommendations */}
         {message.candidates && message.candidates.length > 0 && (
           <MovieCandidatesList
             candidates={message.candidates}
             onSelect={onCandidateSelect}
+            variant={message.analysisMethod === 'similar_movies' ? 'recommendations' : 'candidates'}
           />
         )}
 

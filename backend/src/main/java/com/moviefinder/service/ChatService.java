@@ -1207,8 +1207,30 @@ public class ChatService {
             .build();
     }
 
+    // Handle follow-up questions about a movie
+    // Detects if the question is asking for similar/recommended movies
+    // and returns multiple movie cards
     private ChatResponse answerFollowUp(ChatRequest request) {
         ChatRequest.MovieContext context = request.getMovieContext();
+        String question = request.getMessage().toLowerCase();
+        String language = request.getLanguage();
+        
+        // Detect if user is asking for similar/recommended movies
+        boolean askingForSimilar = question.contains("similar") ||
+            question.contains("recommend") ||
+            question.contains("suggestion") ||
+            question.contains("like this") ||
+            question.contains("more like") ||
+            question.contains("แนะนำ") ||           // Thai: recommend
+            question.contains("คล้าย") ||          // Thai: similar
+            question.contains("ဆင်တူ") ||          // Burmese: similar
+            question.contains("ညွှန်း");            // Burmese: recommend
+        
+        if (askingForSimilar && context != null && context.getEffectiveId() != null) {
+            return handleSimilarMoviesRequest(context, request);
+        }
+        
+        // Regular follow-up question
         String aiResponse = geminiService.answerMovieQuestion(
             request.getMessage(), context.getTitle(), context.getYear(),
             request.getLanguage(), request.getHistory()
@@ -1220,6 +1242,242 @@ public class ChatService {
             .suggestions(getFollowUpSuggestions(request.getLanguage()))
             .language(request.getLanguage())
             .build();
+    }
+    
+        // Handle "similar movies" request by fetching real similar movies from TMDB
+    private ChatResponse handleSimilarMoviesRequest(
+            ChatRequest.MovieContext context, 
+            ChatRequest request) {
+        
+        String language = request.getLanguage();
+        Long movieId = context.getEffectiveId();
+        
+        log.info("User asking for similar movies to: {} (id: {})", 
+            context.getTitle(), movieId);
+        
+        if (movieId == null) {
+            log.warn("No valid movie ID, using Gemini + search fallback");
+            return getGeminiRecommendationsAndSearch(context, request);
+        }
+        
+        // Try to get similar movies from TMDB as a MOVIE
+        List<MovieResponse> similarMovies = new ArrayList<>();
+        try {
+            similarMovies = tmdbService.getSimilarMovies(movieId, "en", 5);
+            log.info("TMDB /movie/{}/similar returned {} results", movieId, similarMovies.size());
+        } catch (Exception e) {
+            log.warn("Failed to get similar movies: {}", e.getMessage());
+        }
+        
+        // If no results, ALWAYS use Gemini + search (don't return text-only)
+        if (similarMovies.isEmpty()) {
+            log.info("TMDB has no similar movies for id {}, using Gemini + search", movieId);
+            return getGeminiRecommendationsAndSearch(context, request);
+        }
+        
+        // Get full details for each similar movie
+        List<MovieResponse> detailedMovies = new ArrayList<>();
+        for (MovieResponse movie : similarMovies) {
+            try {
+                MovieResponse full = tmdbService.getMovieById(movie.getId(), "en");
+                if (full != null && full.getTitle() != null) {
+                    detailedMovies.add(full);
+                }
+                if (detailedMovies.size() >= 5) break;
+            } catch (Exception e) {
+                log.warn("Failed to get details for movie {}: {}", movie.getId(), e.getMessage());
+            }
+        }
+        
+        if (detailedMovies.isEmpty()) {
+            log.info("No detailed movies retrieved, falling back to Gemini + search");
+            return getGeminiRecommendationsAndSearch(context, request);
+        }
+        
+        log.info("Returning {} similar movies as candidates", detailedMovies.size());
+        return buildSimilarMoviesResponse(context.getTitle(), detailedMovies, language, request);
+    }
+    
+    // Get recommendations from Gemini, then search each one in TMDB
+    // This ensures we return real MovieDto objects (not just text)
+    private ChatResponse getGeminiRecommendationsAndSearch(
+            ChatRequest.MovieContext context, 
+            ChatRequest request) {
+        
+        String language = request.getLanguage();
+        String originalTitle = context.getTitle();
+        String originalYear = context.getYear() != null ? context.getYear() : "unknown";
+        
+        log.info("Asking Gemini for 5 movie titles similar to: {} ({})", originalTitle, originalYear);
+        
+        // Ask Gemini for structured recommendations
+        String prompt = String.format("""
+            Recommend exactly 5 movies similar to "%s" (%s).
+            
+            Return ONLY a JSON array (no markdown, no explanation):
+            [
+              {"title": "Movie Title 1", "year": "2020"},
+              {"title": "Movie Title 2", "year": "2019"},
+              {"title": "Movie Title 3", "year": "2018"},
+              {"title": "Movie Title 4", "year": "2017"},
+              {"title": "Movie Title 5", "year": "2016"}
+            ]
+            
+            Rules:
+            - Return REAL existing movies (verify they exist)
+            - Use English international titles (searchable on TMDB)
+            - Include the release year
+            - Similar theme, genre, or emotional tone to "%s"
+            - Popular enough to be in TMDB database
+            - Return ONLY the JSON array, nothing else
+            """,
+            originalTitle, originalYear, originalTitle
+        );
+        
+        String geminiResponse = geminiService.chat(prompt, "en", null, null);
+        log.debug("Gemini raw response: {}", geminiResponse);
+        
+        // Parse Gemini's JSON response
+        List<PossibleMovie> recommendations = parseSimpleRecommendations(geminiResponse);
+        
+        if (recommendations.isEmpty()) {
+            log.warn("Could not parse Gemini recommendations, returning text response");
+            return buildTextOnlyRecommendations(context, request);
+        }
+        
+        log.info("Gemini recommended {} movies, searching TMDB", recommendations.size());
+        
+        // Search TMDB for each recommendation
+        List<MovieResponse> foundMovies = new ArrayList<>();
+        for (PossibleMovie rec : recommendations) {
+            log.info("Searching TMDB for: {} ({})", rec.getTitle(), rec.getYear());
+            try {
+                MovieResponse found = smartTmdbSearch(rec.getTitle(), false);
+                if (found != null && found.getTitle() != null) {
+                    foundMovies.add(found);
+                    log.info("Found: {} ({})", found.getTitle(), found.getYear());
+                }
+                if (foundMovies.size() >= 5) break;
+            } catch (Exception e) {
+                log.warn("Failed to search '{}': {}", rec.getTitle(), e.getMessage());
+            }
+        }
+        
+        if (foundMovies.isEmpty()) {
+            log.warn("None of the recommended movies found in TMDB");
+            return buildTextOnlyRecommendations(context, request);
+        }
+        
+        log.info("Found {} recommended movies in TMDB", foundMovies.size());
+        return buildSimilarMoviesResponse(originalTitle, foundMovies, language, request);
+    }
+    
+    // Parse simple JSON array of recommendations
+    private List<PossibleMovie> parseSimpleRecommendations(String response) {
+        List<PossibleMovie> results = new ArrayList<>();
+        try {
+            String json = response
+                .replaceAll("```json\\s*", "")
+                .replaceAll("```\\s*", "")
+                .trim();
+            
+            int start = json.indexOf('[');
+            int end = json.lastIndexOf(']');
+            if (start < 0 || end <= start) {
+                log.warn("No JSON array found in Gemini response");
+                return results;
+            }
+            
+            json = json.substring(start, end + 1);
+            log.debug("Parsing JSON: {}", json);
+            
+            JsonNode array = objectMapper.readTree(json);
+            if (array.isArray()) {
+                for (JsonNode node : array) {
+                    String title = node.path("title").asText("").trim();
+                    if (!title.isEmpty() && !title.equalsIgnoreCase("null")) {
+                        results.add(PossibleMovie.builder()
+                            .title(title)
+                            .year(node.path("year").asText(""))
+                            .build());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to parse recommendations JSON: {}", e.getMessage());
+        }
+        return results;
+    }
+    
+    // Build the response with candidates (used for both TMDB and Gemini paths)
+    private ChatResponse buildSimilarMoviesResponse(
+            String originalTitle,
+            List<MovieResponse> movies,
+            String language,
+            ChatRequest request) {
+        
+        String reply = buildSimilarMoviesReply(originalTitle, movies, language);
+        
+        List<ChatResponse.MovieDto> candidateDtos = movies.stream()
+            .map(this::toMovieDto)
+            .toList();
+        
+        // Get streaming for the first movie as preview
+        List<MovieResponse.StreamingProvider> streaming = null;
+        try {
+            streaming = tmdbService.getStreamingProviders(movies.get(0).getId(), "TH");
+        } catch (Exception e) {
+            log.warn("Failed to get streaming: {}", e.getMessage());
+        }
+        
+        return ChatResponse.builder()
+            .reply(reply)
+            .conversationId(request.getConversationId())
+            .candidates(candidateDtos)
+            .streamingInfo(streaming != null ? toStreamingDtos(streaming) : null)
+            .analysisMethod("similar_movies")
+            .contentType("RECOMMENDATIONS")
+            .confidenceScore(80)
+            .confidenceLevel("LIKELY")
+            .suggestions(getFollowUpSuggestions(language))
+            .language(language)
+            .build();
+    }
+    
+    // Last resort: return text-only response from Gemini
+    private ChatResponse buildTextOnlyRecommendations(
+            ChatRequest.MovieContext context, 
+            ChatRequest request) {
+        String aiResponse = geminiService.answerMovieQuestion(
+            request.getMessage(), context.getTitle(), context.getYear(),
+            request.getLanguage(), request.getHistory()
+        );
+        
+        return ChatResponse.builder()
+            .reply(aiResponse)
+            .conversationId(request.getConversationId())
+            .analysisMethod("similar_movies_text")
+            .suggestions(getFollowUpSuggestions(request.getLanguage()))
+            .language(request.getLanguage())
+            .build();
+    }
+    
+    // Simple intro text - the detailed info is shown in candidates cards
+    private String buildSimilarMoviesReply(String originalMovie, List<MovieResponse> movies, String language) {
+        return switch (language) {
+            case "th" -> String.format(
+                "ถ้าคุณชอบ **\"%s\"** ลองดูหนัง %d เรื่องที่คล้ายกันด้านล่างนี้:", 
+                originalMovie, movies.size()
+            );
+            case "my" -> String.format(
+                "**\"%s\"** ကို နှစ်သက်ပါက အောက်ပါ ဆင်တူသော ရုပ်ရှင် %d ခုကို ကြည့်ကြပါ:", 
+                originalMovie, movies.size()
+            );
+            default -> String.format(
+                "Since you enjoyed **\"%s\"**, here are %d similar movies you might like:",
+                originalMovie, movies.size()
+            );
+        };
     }
 
     private String extractMovieTitle(String text) {
