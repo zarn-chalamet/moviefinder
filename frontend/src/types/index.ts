@@ -1,7 +1,30 @@
 export type Language = 'en' | 'th' | 'my';
 
+export type ConfidenceLevel = 'CERTAIN' | 'LIKELY' | 'UNCERTAIN' | 'UNKNOWN';
+
+export type ContentType = 
+  | 'RECAP_VIDEO' 
+  | 'SCENE_CLIP' 
+  | 'TRAILER' 
+  | 'CHINESE_SHORT_DRAMA' 
+  | 'ANIME' 
+  | 'UNKNOWN';
+
+export type AnalysisMethod = 
+  | 'hashtag' 
+  | 'explicit_title' 
+  | 'metadata_ai' 
+  | 'recap_match' 
+  | 'audio_narration' 
+  | 'vision' 
+  | 'classification' 
+  | 'failed' 
+  | 'error'
+  | 'text';
+
 export interface Movie {
   id: number;
+  tmdbId?: number;
   title: string;
   titleTh?: string;
   titleMy?: string;
@@ -19,6 +42,8 @@ export interface Movie {
   director?: string;
   cast?: string[];
   tagline?: string;
+  matchScore?: number;
+  matchReason?: string;
 }
 
 export interface StreamingProvider {
@@ -37,11 +62,19 @@ export interface ChatMessage {
   content: string;
   timestamp: Date;
   movieContext?: Movie | null;
+  candidates?: Movie[] | null;
   streamingInfo?: StreamingProvider[];
   suggestions?: string[];
   isTyping?: boolean;
-  analysisMethod?: 'text' | 'vision';
+  isError?: boolean;
+  analysisMethod?: AnalysisMethod;
   processingMessage?: string;
+  confidenceScore?: number;
+  confidenceLevel?: ConfidenceLevel;
+  contentType?: ContentType;
+  isChineseShortDrama?: boolean;
+  chineseShortDramaInfo?: string;
+  originalUserMessage?: string; // For retry functionality
 }
 
 export interface WatchlistItem {

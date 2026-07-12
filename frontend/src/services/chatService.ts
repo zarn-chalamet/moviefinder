@@ -1,6 +1,13 @@
 import api, { ApiResponse } from './api';
 import config from '../config';
-import { Movie, StreamingProvider, Language } from '../types';
+import { 
+  Movie, 
+  StreamingProvider, 
+  Language,
+  ConfidenceLevel,
+  ContentType,
+  AnalysisMethod,
+} from '../types';
 import { generateAIResponse } from '../data/mockData';
 
 // ============================================
@@ -22,11 +29,17 @@ export interface SendMessageResponse {
   reply: string;
   conversationId: string;
   movieContext: Movie | null;
+  candidates?: Movie[] | null;
   streamingInfo: StreamingProvider[];
   suggestions: string[];
   language: Language;
-  analysisMethod?: string;
+  analysisMethod?: AnalysisMethod;
   processingMessage?: string;
+  confidenceScore?: number;
+  confidenceLevel?: ConfidenceLevel;
+  contentType?: ContentType;
+  isChineseShortDrama?: boolean;
+  chineseShortDramaInfo?: string;
 }
 
 export interface AnalyzeUrlRequest {
@@ -37,6 +50,7 @@ export interface AnalyzeUrlRequest {
 export interface AnalyzeUrlResponse {
   reply: string;
   movieContext: Movie | null;
+  candidates?: Movie[] | null;
   streamingInfo: StreamingProvider[];
   confidence: number;
   platform: 'tiktok' | 'facebook' | 'instagram' | 'youtube' | 'unknown';
@@ -52,11 +66,7 @@ export interface AnalyzeImageRequest {
 // ============================================
 
 export const chatService = {
-  /**
-   * Send a chat message to AI
-   */
   async sendMessage(request: SendMessageRequest): Promise<SendMessageResponse> {
-    // Use mock API if configured
     if (config.USE_MOCK_API) {
       return this.mockSendMessage(request);
     }
@@ -68,9 +78,6 @@ export const chatService = {
     return response.data.data;
   },
 
-  /**
-   * Analyze a social media URL
-   */
   async analyzeUrl(request: AnalyzeUrlRequest): Promise<AnalyzeUrlResponse> {
     if (config.USE_MOCK_API) {
       return this.mockAnalyzeUrl(request);
@@ -83,9 +90,6 @@ export const chatService = {
     return response.data.data;
   },
 
-  /**
-   * Analyze an image/screenshot
-   */
   async analyzeImage(request: AnalyzeImageRequest): Promise<SendMessageResponse> {
     if (config.USE_MOCK_API) {
       return this.mockAnalyzeImage(request);
@@ -112,7 +116,6 @@ export const chatService = {
   // ============================================
 
   async mockSendMessage(request: SendMessageRequest): Promise<SendMessageResponse> {
-    // Simulate network delay
     await this.delay(1000 + Math.random() * 1500);
 
     const mockResponse = generateAIResponse(request.message, request.language);
@@ -121,11 +124,15 @@ export const chatService = {
       reply: mockResponse.reply,
       conversationId: Date.now().toString(),
       movieContext: mockResponse.movie || null,
+      candidates: null,
       streamingInfo: mockResponse.streaming || [],
       suggestions: mockResponse.suggestions,
       language: request.language,
       analysisMethod: 'text',
       processingMessage: 'Identified from text metadata',
+      confidenceScore: 75,
+      confidenceLevel: 'LIKELY',
+      contentType: 'UNKNOWN',
     };
   },
 
@@ -134,7 +141,6 @@ export const chatService = {
 
     const mockResponse = generateAIResponse(request.url, request.language);
     
-    // Detect platform from URL
     let platform: AnalyzeUrlResponse['platform'] = 'unknown';
     const url = request.url.toLowerCase();
     if (url.includes('tiktok')) platform = 'tiktok';
@@ -145,6 +151,7 @@ export const chatService = {
     return {
       reply: mockResponse.reply,
       movieContext: mockResponse.movie || null,
+      candidates: null,
       streamingInfo: mockResponse.streaming || [],
       confidence: 0.85 + Math.random() * 0.15,
       platform,
@@ -160,15 +167,18 @@ export const chatService = {
       reply: `🖼️ I analyzed your screenshot!\n\n${mockResponse.reply}`,
       conversationId: Date.now().toString(),
       movieContext: mockResponse.movie || null,
+      candidates: null,
       streamingInfo: mockResponse.streaming || [],
       suggestions: mockResponse.suggestions,
       language: request.language,
-      analysisMethod: 'image',
+      analysisMethod: 'vision',
       processingMessage: 'Processing your image...',
+      confidenceScore: 70,
+      confidenceLevel: 'UNCERTAIN',
+      contentType: 'UNKNOWN',
     };
   },
 
-  // Utility
   delay(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
   },

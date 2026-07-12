@@ -19,13 +19,15 @@ interface AppState {
   messages: ChatMessage[];
   isTyping: boolean;
   sendMessage: (content: string) => Promise<void>;
+  retryMessage: (messageId: string) => Promise<void>;
   clearChat: () => void;
+  startNewChat: () => void;
 
   // Movie Detail
   selectedMovie: Movie | null;
   setSelectedMovie: (movie: Movie | null) => void;
 
-  // Saved Movies (Watchlist)
+  // Saved Movies
   savedMovies: WatchlistItem[];
   addToSaved: (movie: Movie) => void;
   removeFromSaved: (movieId: number) => void;
@@ -40,10 +42,20 @@ interface AppState {
   isMobileMenuOpen: boolean;
   setMobileMenuOpen: (open: boolean) => void;
 
-  // Error handling
+  // Error
   error: string | null;
   setError: (error: string | null) => void;
   clearError: () => void;
+
+  // Confirmation Dialog
+  confirmDialog: {
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: (() => void) | null;
+  };
+  showConfirmDialog: (title: string, message: string, onConfirm: () => void) => void;
+  closeConfirmDialog: () => void;
 }
 
 const useAppStore = create<AppState>((set, get) => ({
@@ -81,7 +93,6 @@ const useAppStore = create<AppState>((set, get) => ({
   sendMessage: async (content) => {
     const { language, messages } = get();
 
-    // Add user message
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
       role: 'user',
@@ -101,7 +112,6 @@ const useAppStore = create<AppState>((set, get) => ({
     }));
 
     try {
-      // Call chat service (mock or real API)
       const response = await chatService.sendMessage({
         message: content,
         language,
@@ -110,17 +120,23 @@ const useAppStore = create<AppState>((set, get) => ({
         history: history.length > 0 ? history : undefined
       });
 
-      // Add AI response
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: response.reply,
         timestamp: new Date(),
         movieContext: response.movieContext,
+        candidates: response.candidates,
         streamingInfo: response.streamingInfo,
         suggestions: response.suggestions,
-        analysisMethod: response.analysisMethod === 'vision' ? 'vision' : 'text',
+        analysisMethod: response.analysisMethod,
         processingMessage: response.processingMessage,
+        confidenceScore: response.confidenceScore,
+        confidenceLevel: response.confidenceLevel,
+        contentType: response.contentType,
+        isChineseShortDrama: response.isChineseShortDrama,
+        chineseShortDramaInfo: response.chineseShortDramaInfo,
+        originalUserMessage: content,
       };
 
       set((state) => ({
@@ -131,12 +147,13 @@ const useAppStore = create<AppState>((set, get) => ({
     } catch (error) {
       console.error('Chat error:', error);
       
-      // Add error message
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: '❌ Sorry, something went wrong. Please try again.',
+        content: 'Something went wrong while processing your request. Please try again or check if the video is accessible.',
         timestamp: new Date(),
+        isError: true,
+        originalUserMessage: content,
       };
 
       set((state) => ({
@@ -147,7 +164,43 @@ const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
+  retryMessage: async (messageId) => {
+    const { messages, sendMessage } = get();
+    const messageIndex = messages.findIndex((m) => m.id === messageId);
+    
+    if (messageIndex === -1) return;
+    
+    const message = messages[messageIndex];
+    const originalContent = message.originalUserMessage;
+    
+    if (!originalContent) return;
+
+    // Remove the message we're retrying
+    set((state) => ({
+      messages: state.messages.filter((_, idx) => idx !== messageIndex),
+    }));
+
+    // Also remove the user message just before it if it matches
+    const prevMessage = messages[messageIndex - 1];
+    if (prevMessage && prevMessage.role === 'user' && prevMessage.content === originalContent) {
+      set((state) => ({
+        messages: state.messages.filter((m) => m.id !== prevMessage.id),
+      }));
+    }
+
+    // Send again
+    await sendMessage(originalContent);
+  },
+
   clearChat: () => set({ messages: [], error: null }),
+
+  startNewChat: () => {
+    set({ 
+      messages: [], 
+      error: null,
+      isTyping: false,
+    });
+  },
 
   // ============================================
   // Movie Detail
@@ -162,7 +215,6 @@ const useAppStore = create<AppState>((set, get) => ({
 
   addToSaved: (movie) => {
     set((state) => {
-      // Check if already saved
       if (state.savedMovies.some((item) => item.movie.id === movie.id)) {
         return state;
       }
@@ -193,20 +245,15 @@ const useAppStore = create<AppState>((set, get) => ({
   // ============================================
   // Trending
   // ============================================
-  trendingMovies: mockMovies, // Initial mock data
+  trendingMovies: mockMovies,
   isTrendingLoading: false,
 
   loadTrendingMovies: async () => {
     set({ isTrendingLoading: true });
 
     try {
-      // For now, use mock data
-      // When backend is ready, replace with:
-      // const movies = await movieService.getTrendingMovies(get().language);
-      
-      await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate loading
+      await new Promise((resolve) => setTimeout(resolve, 500));
       set({ trendingMovies: mockMovies, isTrendingLoading: false });
-
     } catch (error) {
       console.error('Failed to load trending movies:', error);
       set({ isTrendingLoading: false, error: 'Failed to load trending movies' });
@@ -220,16 +267,45 @@ const useAppStore = create<AppState>((set, get) => ({
   setMobileMenuOpen: (open) => set({ isMobileMenuOpen: open }),
 
   // ============================================
-  // Error Handling
+  // Error
   // ============================================
   error: null,
   setError: (error) => set({ error }),
   clearError: () => set({ error: null }),
+
+  // ============================================
+  // Confirm Dialog
+  // ============================================
+  confirmDialog: {
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: null,
+  },
+  
+  showConfirmDialog: (title, message, onConfirm) => {
+    set({
+      confirmDialog: {
+        isOpen: true,
+        title,
+        message,
+        onConfirm,
+      },
+    });
+  },
+  
+  closeConfirmDialog: () => {
+    set({
+      confirmDialog: {
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: null,
+      },
+    });
+  },
 }));
 
-// ============================================
-// Selectors (for optimized re-renders)
-// ============================================
 export const useLanguage = () => useAppStore((state) => state.language);
 export const useTranslation = () => useAppStore((state) => state.t);
 export const useCurrentPage = () => useAppStore((state) => state.currentPage);
