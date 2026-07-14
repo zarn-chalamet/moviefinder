@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { Language, ChatMessage, WatchlistItem, Movie } from '../types';
 import translations from '../i18n/translations';
-import { mockMovies } from '../data/mockData';
+import { movieService } from '../services/movieService';
 import { chatService } from '../services/chatService';
 import config from '../config';
 
@@ -274,15 +274,16 @@ const useAppStore = create<AppState>((set, get) => ({
   // ============================================
   // Trending
   // ============================================
-  trendingMovies: mockMovies,
+  trendingMovies: [],
   isTrendingLoading: false,
 
   loadTrendingMovies: async () => {
+    const { language } = get();
     set({ isTrendingLoading: true });
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      set({ trendingMovies: mockMovies, isTrendingLoading: false });
+      const movies = await movieService.getTrendingMovies(language);
+      set({ trendingMovies: movies, isTrendingLoading: false });
     } catch (error) {
       console.error('Failed to load trending movies:', error);
       set({ isTrendingLoading: false, error: 'Failed to load trending movies' });

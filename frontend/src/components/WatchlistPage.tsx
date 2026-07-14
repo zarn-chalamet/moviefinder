@@ -110,15 +110,19 @@ export default function WatchlistPage() {
                       {item.movie.title}
                     </h3>
                     <div className="flex items-center gap-3 text-xs text-dark-400 mt-1.5">
-                      <span className="flex items-center gap-0.5 text-yellow-400">
-                        <Star className="w-3 h-3 fill-yellow-400" />
-                        {item.movie.rating}
-                      </span>
-                      <span>{item.movie.year}</span>
-                      <span className="flex items-center gap-0.5">
-                        <Clock className="w-3 h-3" />
-                        {item.movie.runtime}m
-                      </span>
+                      {item.movie.rating > 0 && (
+                        <span className="flex items-center gap-0.5 text-yellow-400">
+                          <Star className="w-3 h-3 fill-yellow-400" />
+                          {item.movie.rating.toFixed(1)}
+                        </span>
+                      )}
+                      {item.movie.year && <span>{item.movie.year}</span>}
+                      {item.movie.runtime > 0 && (
+                        <span className="flex items-center gap-0.5">
+                          <Clock className="w-3 h-3" />
+                          {item.movie.runtime}m
+                        </span>
+                      )}
                     </div>
                   </div>
 

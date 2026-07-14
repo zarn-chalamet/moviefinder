@@ -1,11 +1,13 @@
+import { useEffect, useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Star, Clock, TrendingUp, Heart, ChevronRight } from 'lucide-react';
+import { Star, Clock, TrendingUp, Heart, ChevronRight, Loader2 } from 'lucide-react';
 import useAppStore from '../store/appStore';
 import { Movie } from '../types';
 
 function MovieGridCard({ movie, index }: { movie: Movie; index: number }) {
   const { t, setSelectedMovie, setCurrentPage, isMovieSaved, addToSaved, removeFromSaved } = useAppStore();
-  const inWatchlist = isMovieSaved(movie.id);
+  const movieId = movie.tmdbId || movie.id;
+  const inWatchlist = isMovieSaved(movieId);
 
   return (
     <motion.div
@@ -30,10 +32,12 @@ function MovieGridCard({ movie, index }: { movie: Movie; index: number }) {
         </div>
 
         {/* Rating badge */}
-        <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-1 rounded-lg bg-black/60 backdrop-blur-sm text-xs font-medium">
-          <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-          {movie.rating}
-        </div>
+        {movie.rating > 0 && (
+          <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-1 rounded-lg bg-black/60 backdrop-blur-sm text-xs font-medium">
+            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+            {movie.rating.toFixed(1)}
+          </div>
+        )}
 
         {/* Hover actions */}
         <div className="absolute bottom-3 left-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0 flex gap-2">
@@ -49,14 +53,14 @@ function MovieGridCard({ movie, index }: { movie: Movie; index: number }) {
             Details
           </motion.button>
           <motion.button
-            onClick={() => inWatchlist ? removeFromSaved(movie.id) : addToSaved(movie)}
-                className={`p-2.5 rounded-xl transition-colors ${
-                  inWatchlist ? 'bg-red-500/20 text-red-500' : 'bg-white/10 hover:bg-white/20'
-                }`}
+            onClick={() => inWatchlist ? removeFromSaved(movieId) : addToSaved(movie)}
+            className={`p-2.5 rounded-xl transition-colors ${
+              inWatchlist ? 'bg-red-500/20 text-red-500' : 'bg-white/10 hover:bg-white/20'
+            }`}
             whileTap={{ scale: 0.9 }}
           >
-                {inWatchlist ? <Heart className="w-4 h-4 fill-red-500 text-red-500" /> : <Heart className="w-4 h-4" />}
-              </motion.button>
+            {inWatchlist ? <Heart className="w-4 h-4 fill-red-500 text-red-500" /> : <Heart className="w-4 h-4" />}
+          </motion.button>
         </div>
       </div>
 
@@ -66,26 +70,53 @@ function MovieGridCard({ movie, index }: { movie: Movie; index: number }) {
           {movie.title}
         </h3>
         <div className="flex items-center justify-between text-xs text-dark-400">
-          <span>{movie.year}</span>
-          <span className="flex items-center gap-1">
-            <Clock className="w-3 h-3" />
-            {movie.runtime} {t('movie.minutes')}
-          </span>
-        </div>
-        <div className="flex flex-wrap gap-1">
-          {movie.genres.slice(0, 2).map((g) => (
-            <span key={g} className="px-2 py-0.5 rounded-full bg-primary-600/10 text-primary-400 text-[10px]">
-              {g}
+          <span>{movie.year || '—'}</span>
+          {movie.runtime > 0 ? (
+            <span className="flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              {movie.runtime} {t('movie.minutes')}
             </span>
-          ))}
+          ) : movie.rating > 0 ? (
+            <span className="flex items-center gap-1 text-yellow-400/70">
+              <Star className="w-3 h-3" />
+              {movie.voteCount?.toLocaleString() || 0}
+            </span>
+          ) : null}
         </div>
+        {movie.genres && movie.genres.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {movie.genres.slice(0, 2).map((g) => (
+              <span key={g} className="px-2 py-0.5 rounded-full bg-primary-600/10 text-primary-400 text-[10px]">
+                {g}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
     </motion.div>
   );
 }
 
+const GENRES = ['All', 'Action', 'Sci-Fi', 'Drama', 'Thriller', 'Comedy', 'Animation', 'Adventure'];
+
 export default function TrendingPage() {
-  const { t, trendingMovies } = useAppStore();
+  const { t, trendingMovies, isTrendingLoading, loadTrendingMovies, language } = useAppStore();
+  const [selectedGenre, setSelectedGenre] = useState<string>('All');
+
+  useEffect(() => {
+    loadTrendingMovies();
+  }, [language]);
+
+  // Filter movies by selected genre
+  const filteredMovies = useMemo(() => {
+    if (selectedGenre === 'All') return trendingMovies;
+    return trendingMovies.filter((movie) =>
+      movie.genres?.some((g) =>
+        g.toLowerCase().includes(selectedGenre.toLowerCase()) ||
+        selectedGenre.toLowerCase().includes(g.toLowerCase())
+      )
+    );
+  }, [trendingMovies, selectedGenre]);
 
   return (
     <div className="min-h-screen bg-dark-950 pt-24 pb-16">
@@ -113,26 +144,38 @@ export default function TrendingPage() {
           transition={{ delay: 0.2 }}
           className="flex flex-wrap justify-center gap-2 mb-10"
         >
-          {['All', 'Action', 'Sci-Fi', 'Drama', 'Thriller', 'Comedy', 'Animation', 'Adventure'].map((genre, i) => (
-            <button
+          {GENRES.map((genre) => (
+            <motion.button
               key={genre}
+              onClick={() => setSelectedGenre(genre)}
+              whileTap={{ scale: 0.95 }}
               className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                i === 0
+                selectedGenre === genre
                   ? 'bg-primary-600/30 text-primary-300 ring-1 ring-primary-500/30'
                   : 'glass-light text-dark-400 hover:text-white hover:bg-white/5'
               }`}
             >
               {genre}
-            </button>
+            </motion.button>
           ))}
         </motion.div>
 
         {/* Movie Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-          {trendingMovies.map((movie, i) => (
-            <MovieGridCard key={movie.id} movie={movie} index={i} />
-          ))}
-        </div>
+        {isTrendingLoading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-8 h-8 text-primary-500 animate-spin" />
+          </div>
+        ) : filteredMovies.length === 0 ? (
+          <div className="text-center py-20 text-dark-400">
+            No movies found in "{selectedGenre}" genre
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            {filteredMovies.map((movie, i) => (
+              <MovieGridCard key={movie.tmdbId || movie.id} movie={movie} index={i} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
