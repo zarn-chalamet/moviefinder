@@ -83,19 +83,28 @@ export const movieService = {
     return response.data.data;
   },
 
-  /**
-   * Get streaming providers for a movie
-   */
-  async getStreamingProviders(params: StreamingParams): Promise<StreamingProvider[]> {
+    // Get streaming providers - real data
+  async getStreamingProviders(movieId: number, country: string = 'TH'): Promise<StreamingProvider[]> {
     if (config.USE_MOCK_API) {
-      return this.mockGetStreamingProviders(params);
+      return this.mockGetStreamingProviders({ movieId, country });
     }
 
     const response = await api.get<ApiResponse<StreamingProvider[]>>(
-      `/movies/${params.movieId}/streaming`,
-      {
-        params: { country: params.country || 'TH' },
-      }
+      `/movies/${movieId}/streaming`,
+      { params: { country } }
+    );
+    return response.data.data;
+  },
+
+  // Get similar movies - real data
+  async getSimilarMovies(movieId: number, limit: number = 6): Promise<Movie[]> {
+    if (config.USE_MOCK_API) {
+      return this.mockGetSimilarMovies(movieId, limit);
+    }
+
+    const response = await api.get<ApiResponse<Movie[]>>(
+      `/movies/${movieId}/similar`,
+      { params: { limit } }
     );
     return response.data.data;
   },
@@ -128,23 +137,6 @@ export const movieService = {
     const response = await api.get<ApiResponse<Movie[]>>('/movies/trending', {
       params: { lang: language || 'en' },
     });
-    return response.data.data;
-  },
-
-  /**
-   * Get similar movies
-   */
-  async getSimilarMovies(movieId: number, limit?: number): Promise<Movie[]> {
-    if (config.USE_MOCK_API) {
-      return this.mockGetSimilarMovies(movieId, limit);
-    }
-
-    const response = await api.get<ApiResponse<Movie[]>>(
-      `/movies/${movieId}/similar`,
-      {
-        params: { limit: limit || 6 },
-      }
-    );
     return response.data.data;
   },
 

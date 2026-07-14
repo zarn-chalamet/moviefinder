@@ -217,3 +217,12 @@ img {
 img[loading="lazy"] {
   background: linear-gradient(135deg, #0f172a, #1e293b);
 }
+
+/* Hide scrollbar for tab overflow on mobile */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

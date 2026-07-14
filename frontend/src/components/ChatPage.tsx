@@ -105,7 +105,7 @@ function MovieCard({
               whileTap={{ scale: 0.95 }}
             >
               <ChevronRight className="w-3 h-3" />
-              Watch/Download Links
+              Find & Watch
             </motion.button>
             <motion.button
               onClick={() => inWatchlist ? removeFromSaved(movie.id) : addToSaved(movie)}

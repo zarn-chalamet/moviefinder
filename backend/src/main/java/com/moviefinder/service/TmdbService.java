@@ -103,7 +103,6 @@ public class TmdbService {
         }
     }
 
-    // Get streaming providers for a movie in a specific country
     @Cacheable(value = "streaming", key = "'streaming-' + #movieId + '-' + #country")
     public List<MovieResponse.StreamingProvider> getStreamingProviders(Long movieId, String country) {
         try {
@@ -119,7 +118,7 @@ public class TmdbService {
 
         } catch (Exception e) {
             log.error("Error getting streaming providers: {}", e.getMessage());
-            return generateDefaultStreamingProviders(movieId);
+            return List.of();
         }
     }
 
@@ -489,76 +488,93 @@ public class TmdbService {
         }
     }
 
+        // Parse REAL streaming providers from TMDB
+    // Returns empty list if not available - NO fake data
     private List<MovieResponse.StreamingProvider> parseStreamingProviders(String jsonResponse, String country) {
         List<MovieResponse.StreamingProvider> providers = new ArrayList<>();
-
+        
         try {
             JsonNode root = objectMapper.readTree(jsonResponse);
             JsonNode results = root.path("results").path(country);
-
-            if (!results.isMissingNode()) {
-                // Subscription streaming
-                for (JsonNode provider : results.path("flatrate")) {
-                    providers.add(MovieResponse.StreamingProvider.builder()
-                            .platform(provider.path("provider_name").asText())
-                            .type("subscription")
-                            .isFree(false)
-                            .price(getDefaultPrice(provider.path("provider_name").asText()))
-                            .country(country)
-                            .logo(getImageUrl(provider.path("logo_path").asText(), "w92"))
-                            .url(results.path("link").asText())
-                            .build());
-                }
-
-                // Free streaming
-                for (JsonNode provider : results.path("free")) {
-                    providers.add(MovieResponse.StreamingProvider.builder()
-                            .platform(provider.path("provider_name").asText())
-                            .type("free")
-                            .isFree(true)
-                            .price("Free")
-                            .country(country)
-                            .logo(getImageUrl(provider.path("logo_path").asText(), "w92"))
-                            .url(results.path("link").asText())
-                            .build());
-                }
-
-                // Rental streaming
-                for (JsonNode provider : results.path("rent")) {
-                    providers.add(MovieResponse.StreamingProvider.builder()
-                            .platform(provider.path("provider_name").asText())
-                            .type("rent")
-                            .isFree(false)
-                            .price("499-199 THB")
-                            .country(country)
-                            .logo(getImageUrl(provider.path("logo_path").asText(), "w92"))
-                            .url(results.path("link").asText())
-                            .build());
-                }
+            
+            if (results.isMissingNode() || results.isEmpty()) {
+                log.info("No streaming data for country {}", country);
+                return providers;
             }
+            
+            String tmdbLink = results.path("link").asText("");
+
+            // Subscription streaming (Netflix, Disney+, etc.)
+            for (JsonNode provider : results.path("flatrate")) {
+                providers.add(MovieResponse.StreamingProvider.builder()
+                        .platform(provider.path("provider_name").asText())
+                        .type("subscription")
+                        .isFree(false)
+                        .price(getDefaultPrice(provider.path("provider_name").asText()))
+                        .country(country)
+                        .logo(getImageUrl(provider.path("logo_path").asText(), "w92"))
+                        .url(tmdbLink)
+                        .build());
+            }
+
+            // Free with ads
+            for (JsonNode provider : results.path("free")) {
+                providers.add(MovieResponse.StreamingProvider.builder()
+                        .platform(provider.path("provider_name").asText())
+                        .type("free")
+                        .isFree(true)
+                        .price("Free")
+                        .country(country)
+                        .logo(getImageUrl(provider.path("logo_path").asText(), "w92"))
+                        .url(tmdbLink)
+                        .build());
+            }
+
+            // Ads-supported
+            for (JsonNode provider : results.path("ads")) {
+                providers.add(MovieResponse.StreamingProvider.builder()
+                        .platform(provider.path("provider_name").asText())
+                        .type("free")
+                        .isFree(true)
+                        .price("Free (with ads)")
+                        .country(country)
+                        .logo(getImageUrl(provider.path("logo_path").asText(), "w92"))
+                        .url(tmdbLink)
+                        .build());
+            }
+
+            // Rent
+            for (JsonNode provider : results.path("rent")) {
+                providers.add(MovieResponse.StreamingProvider.builder()
+                        .platform(provider.path("provider_name").asText())
+                        .type("rent")
+                        .isFree(false)
+                        .price("Rent")
+                        .country(country)
+                        .logo(getImageUrl(provider.path("logo_path").asText(), "w92"))
+                        .url(tmdbLink)
+                        .build());
+            }
+
+            // Buy
+            for (JsonNode provider : results.path("buy")) {
+                providers.add(MovieResponse.StreamingProvider.builder()
+                        .platform(provider.path("provider_name").asText())
+                        .type("buy")
+                        .isFree(false)
+                        .price("Buy")
+                        .country(country)
+                        .logo(getImageUrl(provider.path("logo_path").asText(), "w92"))
+                        .url(tmdbLink)
+                        .build());
+            }
+            
+            log.info("Found {} real streaming providers for country {}", providers.size(), country);
         } catch (Exception e) {
             log.error("Error parsing streaming providers: {}", e.getMessage());
         }
-
-        if (providers.isEmpty()) {
-            return generateDefaultStreamingProviders(0L);
-        }
-
+        
         return providers;
-    }
-
-    private List<MovieResponse.StreamingProvider> generateDefaultStreamingProviders(Long movieId) {
-        return List.of(
-            MovieResponse.StreamingProvider.builder()
-                    .platform("Netflix").type("subscription").isFree(false)
-                    .price("419 THB/mo").country("TH").logo("").url("https://netflix.com").build(),
-            MovieResponse.StreamingProvider.builder()
-                    .platform("TrueID").type("free").isFree(true)
-                    .price("Free").country("TH").logo("").url("https://trueid.net").build(),
-            MovieResponse.StreamingProvider.builder()
-                    .platform("Disney+").type("subscription").isFree(false)
-                    .price("399 THB/mo").country("TH").logo("").url("https://disneyplus.com").build()
-        );
     }
 
     private List<String> parseGenreIds(JsonNode genreIds) {
