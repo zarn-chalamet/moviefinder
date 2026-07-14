@@ -236,12 +236,15 @@ const useAppStore = create<AppState>((set, get) => ({
 
   addToSaved: (movie) => {
     set((state) => {
-      if (state.savedMovies.some((item) => item.movie.id === movie.id)) {
+      // Use tmdbId if available, fallback to id
+      const movieKey = movie.tmdbId || movie.id;
+      
+      if (state.savedMovies.some((item) => (item.movie.tmdbId || item.movie.id) === movieKey)) {
         return state;
       }
 
       const newItem: WatchlistItem = {
-        id: movie.id.toString(),
+        id: String(movieKey),
         movie,
         addedAt: new Date(),
       };
@@ -253,16 +256,21 @@ const useAppStore = create<AppState>((set, get) => ({
 
   removeFromSaved: (movieId) => {
     set((state) => {
-      const newSavedMovies = state.savedMovies.filter((item) => item.movie.id !== movieId);
+      const newSavedMovies = state.savedMovies.filter((item) => {
+        const itemKey = item.movie.tmdbId || item.movie.id;
+        return itemKey !== movieId;
+      });
       localStorage.setItem(config.STORAGE_KEYS.SAVED_MOVIES, JSON.stringify(newSavedMovies));
       return { savedMovies: newSavedMovies };
     });
   },
 
   isMovieSaved: (movieId) => {
-    return get().savedMovies.some((item) => item.movie.id === movieId);
+    return get().savedMovies.some((item) => {
+      const itemKey = item.movie.tmdbId || item.movie.id;
+      return itemKey === movieId;
+    });
   },
-
   // ============================================
   // Trending
   // ============================================

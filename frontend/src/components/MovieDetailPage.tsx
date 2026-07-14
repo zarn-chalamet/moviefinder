@@ -41,7 +41,7 @@ export default function MovieDetailPage() {
 
   const movie = selectedMovie;
   const movieId = movie.tmdbId || movie.id;
-  const inWatchlist = isMovieSaved(movie.id);
+  const inWatchlist = isMovieSaved(movieId);
 
   // Fetch real streaming data and similar movies
   useEffect(() => {
@@ -222,7 +222,7 @@ export default function MovieDetailPage() {
                 <ExternalLink className="w-3.5 h-3.5 opacity-60" />
               </motion.a>
               <motion.button
-                onClick={() => inWatchlist ? removeFromSaved(movie.id) : addToSaved(movie)}
+                onClick={() => inWatchlist ? removeFromSaved(movieId) : addToSaved(movie)}
                 className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all ${
                   inWatchlist
                     ? 'bg-red-500/15 text-red-400 border border-red-500/20'

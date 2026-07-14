@@ -84,7 +84,7 @@ export default function WatchlistPage() {
                   
                   {/* Remove button */}
                   <motion.button
-                    onClick={() => removeFromSaved(item.movie.id)}
+                    onClick={() => removeFromSaved(item.movie.tmdbId || item.movie.id)}
                     className="absolute top-3 right-3 p-2 rounded-xl bg-dark-950/60 backdrop-blur-sm text-dark-300 hover:text-red-400 hover:bg-dark-950/80 transition-all opacity-0 group-hover:opacity-100"
                     whileTap={{ scale: 0.9 }}
                   >

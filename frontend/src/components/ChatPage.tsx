@@ -52,7 +52,8 @@ function MovieCard({
   onViewDetails: () => void;
 }) {
   const { t, isMovieSaved, addToSaved, removeFromSaved } = useAppStore();
-  const inWatchlist = isMovieSaved(movie.id);
+  const movieId = movie.tmdbId || movie.id;
+  const inWatchlist = isMovieSaved(movieId);
 
   return (
     <motion.div
@@ -108,7 +109,7 @@ function MovieCard({
               Find & Watch
             </motion.button>
             <motion.button
-              onClick={() => inWatchlist ? removeFromSaved(movie.id) : addToSaved(movie)}
+              onClick={() => inWatchlist ? removeFromSaved(movieId) : addToSaved(movie)}
               className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 inWatchlist
                   ? 'bg-red-500/20 text-red-400'
