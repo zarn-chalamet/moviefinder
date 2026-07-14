@@ -9,10 +9,10 @@ interface MovieCandidatesListProps {
   variant?: 'candidates' | 'recommendations';
 }
 
-export default function MovieCandidatesList({ 
-  candidates, 
+export default function MovieCandidatesList({
+  candidates,
   onSelect,
-  variant = 'candidates'
+  variant = 'candidates',
 }: MovieCandidatesListProps) {
   const { t, isMovieSaved, addToSaved, removeFromSaved } = useAppStore();
   const isRecommendations = variant === 'recommendations';
@@ -20,127 +20,131 @@ export default function MovieCandidatesList({
   return (
     <div className="mt-3 space-y-3">
       {!isRecommendations && (
-        <p className="text-xs text-dark-400 font-medium mb-2">
-          {candidates.length} possible matches - select the correct one:
+        <p className="text-xs text-dark-500 font-mono uppercase tracking-widest mb-2">
+          {candidates.length} possible matches
         </p>
       )}
-      
+
       {candidates.map((movie, idx) => {
         const inWatchlist = isMovieSaved(movie.id);
-        
+
         return (
           <motion.div
             key={`${movie.id}-${idx}`}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.08 }}
-            className="rounded-2xl glass overflow-hidden hover:bg-white/5 transition-all"
+            transition={{ delay: idx * 0.06 }}
+            className="rounded-2xl border border-white/5 bg-white/[0.02] overflow-hidden hover:border-white/10 transition-all"
           >
-            {/* Header: Poster + Basic Info */}
             <div className="flex gap-4 p-4">
+              {/* Poster */}
               {movie.posterUrl ? (
                 <button
                   onClick={() => onSelect(movie)}
-                  className="w-24 sm:w-28 h-36 sm:h-40 rounded-xl overflow-hidden flex-shrink-0 shadow-lg group"
+                  className="w-20 sm:w-24 h-28 sm:h-36 rounded-xl overflow-hidden flex-shrink-0 group"
                 >
                   <img
                     src={movie.posterUrl}
                     alt={movie.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     loading="lazy"
                   />
                 </button>
               ) : (
-                <div className="w-24 sm:w-28 h-36 sm:h-40 rounded-xl bg-dark-800 flex-shrink-0 flex items-center justify-center">
-                  <Play className="w-8 h-8 text-dark-600" />
+                <div className="w-20 sm:w-24 h-28 sm:h-36 rounded-xl border border-white/5 bg-white/[0.02] flex-shrink-0 flex items-center justify-center">
+                  <Play
+                    className="w-6 h-6 text-dark-600"
+                    strokeWidth={1.5}
+                  />
                 </div>
               )}
-              
+
               <div className="flex-1 min-w-0 space-y-2">
-                {/* Title with rank number for recommendations */}
-                <div>
-                  <h3 className="font-bold text-base sm:text-lg leading-tight">
-                    {isRecommendations && (
-                      <span className="text-primary-400 mr-1">{idx + 1}.</span>
-                    )}
-                    {movie.title}
-                    {movie.year && (
-                      <span className="text-dark-400 font-normal ml-1">
-                        ({movie.year})
-                      </span>
-                    )}
-                  </h3>
-                  {movie.tagline && (
-                    <p className="text-xs text-dark-400 italic mt-0.5 line-clamp-1">
-                      "{movie.tagline}"
-                    </p>
+                {/* Title */}
+                <h3 className="font-semibold text-sm leading-tight tracking-tight">
+                  {isRecommendations && (
+                    <span className="text-dark-500 font-mono mr-1.5">
+                      {idx + 1}.
+                    </span>
                   )}
-                </div>
-                
-                {/* Meta info */}
+                  {movie.title}
+                  {movie.year && (
+                    <span className="text-dark-500 font-normal font-mono ml-1.5 text-xs">
+                      {movie.year}
+                    </span>
+                  )}
+                </h3>
+
+                {movie.tagline && (
+                  <p className="text-xs text-dark-500 italic line-clamp-1">
+                    "{movie.tagline}"
+                  </p>
+                )}
+
+                {/* Meta */}
                 <div className="flex flex-wrap gap-2 text-xs">
                   {movie.rating > 0 && (
-                    <span className="flex items-center gap-1 text-yellow-400 font-medium">
+                    <span className="flex items-center gap-1 text-yellow-400">
                       <Star className="w-3 h-3 fill-yellow-400" />
                       {movie.rating}
                     </span>
                   )}
                   {movie.runtime > 0 && (
-                    <span className="text-dark-400 flex items-center gap-1">
+                    <span className="text-dark-500 flex items-center gap-1">
                       <Clock className="w-3 h-3" />
-                      {movie.runtime}min
+                      {movie.runtime} {t('movie.minutes')}
                     </span>
                   )}
                 </div>
-                
+
                 {/* Genres */}
                 {movie.genres && movie.genres.length > 0 && (
                   <div className="flex flex-wrap gap-1">
                     {movie.genres.slice(0, 3).map((g) => (
-                      <span 
-                        key={g} 
-                        className="px-2 py-0.5 rounded-full bg-primary-600/20 text-primary-300 text-xs"
+                      <span
+                        key={g}
+                        className="px-2 py-0.5 rounded-full border border-white/5 bg-white/[0.02] text-[10px] text-dark-400"
                       >
                         {g}
                       </span>
                     ))}
                   </div>
                 )}
-                
-                {/* Action buttons */}
+
+                {/* Actions */}
                 <div className="flex gap-2 pt-1">
-                  <motion.button
+                  <button
                     onClick={() => onSelect(movie)}
-                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-primary-600/30 hover:bg-primary-600/50 text-primary-300 text-xs font-medium transition-colors"
-                    whileTap={{ scale: 0.95 }}
+                    className="group inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white text-dark-950 text-xs font-semibold hover:bg-dark-200 transition-colors"
                   >
-                    <ChevronRight className="w-3 h-3" />
-                    Watch/Download Links
-                  </motion.button>
-                  <motion.button
-                    onClick={() => inWatchlist ? removeFromSaved(movie.id) : addToSaved(movie)}
-                    className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                    {t('movie.findTitle')}
+                    <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                  </button>
+                  <button
+                    onClick={() =>
                       inWatchlist
-                        ? 'bg-red-500/20 text-red-400'
-                        : 'bg-white/5 hover:bg-white/10 text-dark-300'
+                        ? removeFromSaved(movie.id)
+                        : addToSaved(movie)
+                    }
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium transition-colors ${
+                      inWatchlist
+                        ? 'border-red-500/30 bg-red-500/10 text-red-400'
+                        : 'border-white/10 text-dark-300 hover:text-white hover:border-white/20'
                     }`}
-                    whileTap={{ scale: 0.95 }}
                   >
-                    {inWatchlist ? (
-                      <Heart className="w-3 h-3 fill-red-500 text-red-500" />
-                    ) : (
-                      <Heart className="w-3 h-3" />
-                    )}
-                    {inWatchlist ? 'Saved' : 'Save'}
-                  </motion.button>
+                    <Heart
+                      className={`w-3 h-3 ${inWatchlist ? 'fill-red-400 text-red-400' : ''}`}
+                    />
+                    {inWatchlist ? t('movie.saved') : t('movie.saveMovie')}
+                  </button>
                 </div>
               </div>
             </div>
-            
-            {/* Full Overview (shown below the header) */}
+
+            {/* Overview */}
             {movie.overview && (
-              <div className="px-4 pb-4">
-                <p className="text-xs sm:text-sm text-dark-300 leading-relaxed">
+              <div className="px-4 pb-4 border-t border-white/5 pt-3">
+                <p className="text-xs text-dark-400 leading-relaxed line-clamp-3">
                   {movie.overview}
                 </p>
               </div>

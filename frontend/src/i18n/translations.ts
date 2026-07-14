@@ -39,6 +39,22 @@ const translations: Record<Language, TranslationKeys> = {
     'chat.analyzing': 'Analyzing your request...',                           // Loading text while AI processes
     'chat.upload': 'Upload Screenshot',                                      // Button to upload image
     'chat.suggestions.title': 'Try asking:',                                 // Label above suggestion chips
+    'chat.hero.badge': 'Powered by Gemini AI',
+    'chat.hero.title1': 'What movie are you',
+    'chat.hero.title2': 'looking for?',
+    'chat.hero.tryAsking': 'Try asking',
+    'chat.hero.enterHint': 'Press Enter to send',
+
+    // Suggestion category labels
+    'chat.category.link': 'From link',
+    'chat.category.scene': 'Describe scene',
+    'chat.category.theme': 'By theme',
+    'chat.category.recommend': 'Recommend',
+
+    'chat.newChat': 'New Chat',
+    'chat.newChatConfirm.title': 'Start a new chat?',
+    'chat.newChatConfirm.message': 'Your current conversation will be cleared.',
+    'common.confirm': 'Confirm',
 
     // ============================================
     // MOVIE INFO LABELS (movie detail cards - short, clear labels)
@@ -175,7 +191,8 @@ const translations: Record<Language, TranslationKeys> = {
     'common.save': 'Save',                                                   // Save action button
     'common.cancel': 'Cancel',                                               // Cancel action button
     'common.search': 'Search',                                               // Search action
-    'common.back': 'Back',                                                   // Back/return button
+    'common.back': 'Back',  
+    'common.more': 'More',                                                 // Back/return button
 
     // ============================================
     // MOVIE DETAIL PAGE (deep info about a specific movie)
@@ -234,6 +251,21 @@ const translations: Record<Language, TranslationKeys> = {
     'chat.analyzing': 'กำลังวิเคราะห์คลิปให้คุณ รอสักครู่นะครับ...',
     'chat.upload': 'อัปโหลดภาพหน้าจอ',
     'chat.suggestions.title': 'ลองถามแบบนี้ดูสิ:',
+    'chat.hero.badge': 'ขับเคลื่อนโดย Gemini AI',
+    'chat.hero.title1': 'คุณกำลังตามหา',
+    'chat.hero.title2': 'หนังเรื่องไหนอยู่?',
+    'chat.hero.tryAsking': 'ลองถามแบบนี้',
+    'chat.hero.enterHint': 'กด Enter เพื่อส่ง',
+
+    'chat.category.link': 'จากลิงก์',
+    'chat.category.scene': 'อธิบายฉาก',
+    'chat.category.theme': 'ตามธีม',
+    'chat.category.recommend': 'ให้แนะนำ',
+
+    'chat.newChat': 'แชทใหม่',
+    'chat.newChatConfirm.title': 'เริ่มแชทใหม่?',
+    'chat.newChatConfirm.message': 'บทสนทนาปัจจุบันของคุณจะถูกล้าง',
+    'common.confirm': 'ยืนยัน',
 
     // ============================================
     // MOVIE INFO LABELS (movie detail cards - short, clear labels)
@@ -393,6 +425,7 @@ const translations: Record<Language, TranslationKeys> = {
     'common.cancel': 'ยกเลิก',
     'common.search': 'ค้นหา',
     'common.back': 'กลับ',
+    'common.more': 'เพิ่มเติม',
   },
 
   my: {
@@ -429,6 +462,21 @@ const translations: Record<Language, TranslationKeys> = {
     'chat.analyzing': 'ဗီဒီယိုကို စစ်ဆေးနေပါတယ်... ခဏလေး စောင့်ပေးပါဗျာ...',
     'chat.upload': 'Screenshot တင်ပြီး ရှာမယ်',
     'chat.suggestions.title': 'ဒီလိုမျိုး မေးကြည့်နိုင်ပါတယ် -',
+    'chat.hero.badge': 'Gemini AI မှ ပံ့ပိုးထားသည်',
+    'chat.hero.title1': 'ဘယ်ရုပ်ရှင်ကို',
+    'chat.hero.title2': 'ရှာနေတာလဲ?',
+    'chat.hero.tryAsking': 'ဒီလိုမေးကြည့်ပါ',
+    'chat.hero.enterHint': 'ပို့ရန် Enter နှိပ်ပါ',
+
+    'chat.category.link': 'လင့်ခ်ဖြင့်',
+    'chat.category.scene': 'ဇာတ်ကွက်ဖော်ပြရန်',
+    'chat.category.theme': 'ခေါင်းစဉ်အလိုက်',
+    'chat.category.recommend': 'အကြံပြုချက်',
+
+    'chat.newChat': 'Chatအသစ်',
+    'chat.newChatConfirm.title': 'Chatအသစ်စတင်မလား?',
+    'chat.newChatConfirm.message': 'လက်ရှိ စကားပြောဆိုမှုကို ရှင်းလင်းသွားပါမည်။',
+    'common.confirm': 'အတည်ပြုပါ',
 
     // ============================================
     // MOVIE INFO LABELS (movie detail cards - short, clear labels)
@@ -588,6 +636,7 @@ const translations: Record<Language, TranslationKeys> = {
     'common.cancel': 'ပယ်ဖျက်မယ်',
     'common.search': 'ရှာဖွေရန်',
     'common.back': 'နောက်သို့',
+    'common.more': 'နောက်ထပ်',
   },
 };
 

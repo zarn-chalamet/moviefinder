@@ -3,14 +3,12 @@ import { AlertCircle } from 'lucide-react';
 import useAppStore from '../store/appStore';
 
 export default function ConfirmDialog() {
-  const { confirmDialog, closeConfirmDialog } = useAppStore();
+  const { confirmDialog, closeConfirmDialog, t } = useAppStore();
 
   if (!confirmDialog.isOpen) return null;
 
   const handleConfirm = () => {
-    if (confirmDialog.onConfirm) {
-      confirmDialog.onConfirm();
-    }
+    if (confirmDialog.onConfirm) confirmDialog.onConfirm();
     closeConfirmDialog();
   };
 
@@ -24,39 +22,40 @@ export default function ConfirmDialog() {
         onClick={closeConfirmDialog}
       >
         <motion.div
-          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          initial={{ opacity: 0, scale: 0.95, y: 16 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.9, y: 20 }}
-          className="glass rounded-2xl p-6 max-w-md w-full border border-white/10 shadow-2xl"
+          exit={{ opacity: 0, scale: 0.95, y: 16 }}
+          transition={{ duration: 0.2 }}
+          className="rounded-2xl border border-white/10 bg-dark-950 p-6 max-w-sm w-full shadow-2xl"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-yellow-500/15 flex items-center justify-center flex-shrink-0">
-              <AlertCircle className="w-6 h-6 text-yellow-400" />
+          <div className="flex items-start gap-4 mb-6">
+            <div className="w-10 h-10 rounded-xl border border-yellow-500/20 bg-yellow-500/10 flex items-center justify-center flex-shrink-0">
+              <AlertCircle className="w-5 h-5 text-yellow-400" strokeWidth={1.5} />
             </div>
             <div className="flex-1">
-              <h3 className="font-bold text-lg text-white mb-1">{confirmDialog.title}</h3>
-              <p className="text-sm text-dark-300 leading-relaxed">{confirmDialog.message}</p>
+              <h3 className="font-semibold text-base tracking-tight mb-1">
+                {confirmDialog.title}
+              </h3>
+              <p className="text-sm text-dark-400 leading-relaxed">
+                {confirmDialog.message}
+              </p>
             </div>
           </div>
-          
-          <div className="flex gap-2 mt-6 justify-end">
-            <motion.button
+
+          <div className="flex gap-2 justify-end">
+            <button
               onClick={closeConfirmDialog}
-              className="px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-dark-200 font-medium text-sm transition-colors"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              className="px-4 py-2 rounded-full border border-white/10 text-dark-300 hover:text-white hover:border-white/20 text-sm font-medium transition-colors"
             >
-              Cancel
-            </motion.button>
-            <motion.button
+              {t('common.cancel')}
+            </button>
+            <button
               onClick={handleConfirm}
-              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-primary-600 to-primary-500 text-white font-medium text-sm shadow-lg shadow-primary-600/30 transition-all"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              className="px-4 py-2 rounded-full bg-white text-dark-950 text-sm font-semibold hover:bg-dark-200 transition-colors"
             >
-              Confirm
-            </motion.button>
+              {t('common.confirm')}
+            </button>
           </div>
         </motion.div>
       </motion.div>
