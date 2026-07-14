@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Star } from 'lucide-react';
+import { Star, ArrowRight } from 'lucide-react';
 import useAppStore from '../store/appStore';
 
 export default function MoviePosterStrip() {
@@ -101,15 +101,13 @@ export default function MoviePosterStrip() {
       <div className="text-center mt-10">
         <motion.button
           onClick={() => setCurrentPage('trending')}
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl glass hover:bg-white/5 text-sm font-medium transition-colors"
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
+          className="group inline-flex items-center gap-2 px-6 py-3 rounded-full border border-white/10 text-sm text-dark-200 hover:bg-white/5 hover:border-white/20 transition-colors"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
         >
-          View All Trending Movies
-          <span className="text-primary-400">→</span>
+          {t('trending.viewAll')}
+          <ArrowRight className="w-4 h-4 text-dark-400 group-hover:translate-x-0.5 transition-transform" />
         </motion.button>
       </div>
     </section>

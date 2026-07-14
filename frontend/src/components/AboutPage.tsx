@@ -73,7 +73,7 @@ export default function AboutPage() {
               <div className="w-1 h-1 rounded-full bg-dark-700" />
               <span className="hover:text-white transition-colors">TH</span>
               <div className="w-1 h-1 rounded-full bg-dark-700" />
-              <span className="hover:text-white transition-colors">MY</span>
+              <span className="hover:text-white transition-colors">MM</span>
             </div>
           </motion.div>
         </div>

@@ -7,7 +7,7 @@ import { Language } from '../types';
 const languages: { code: Language; label: string; short: string }[] = [
   { code: 'en', label: 'English', short: 'EN' },
   { code: 'th', label: 'ไทย', short: 'TH' },
-  { code: 'my', label: 'မြန်မာ', short: 'MY' },
+  { code: 'my', label: 'မြန်မာ', short: 'MM' },
 ];
 
 export default function Navbar() {

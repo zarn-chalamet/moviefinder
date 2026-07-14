@@ -83,6 +83,7 @@ const translations: Record<Language, TranslationKeys> = {
     // ============================================
     'trending.title': 'Trending Now',                                        // Page title
     'trending.subtitle': 'Popular movies that everyone is talking about',    // Page subtitle
+    'trending.viewAll': 'View All Trending Movies',
 
     // ============================================
     // ABOUT PAGE - HERO (big headlines, editorial/premium tone)
@@ -287,6 +288,7 @@ const translations: Record<Language, TranslationKeys> = {
     // ============================================
     'trending.title': 'กำลังมาแรงตอนนี้',
     'trending.subtitle': 'หนังฮิตติดกระแสที่ใครๆ ก็กำลังพูดถึง',
+    'trending.viewAll': 'ดูหนังมาแรงทั้งหมด',
 
     // ============================================
     // ABOUT PAGE - HERO (big headlines, editorial/premium tone)
@@ -469,6 +471,7 @@ const translations: Record<Language, TranslationKeys> = {
     // ============================================
     'trending.title': 'လောလောဆယ် ခေတ်စားနေတာတွေ',
     'trending.subtitle': 'လူပြောအများဆုံးနဲ့ လူကြိုက်အများဆုံး ရုပ်ရှင်များ',
+    'trending.viewAll': 'ခေတ်စားနေသော ရုပ်ရှင်အားလုံး ကြည့်မယ်',
 
     // ============================================
     // ABOUT PAGE - HERO (big headlines, editorial/premium tone)

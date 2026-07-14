@@ -30,7 +30,7 @@ export default function Footer() {
               <div className="w-1 h-1 rounded-full bg-dark-700" />
               <span>TH</span>
               <div className="w-1 h-1 rounded-full bg-dark-700" />
-              <span>MY</span>
+              <span>MM</span>
             </div>
           </div>
 
