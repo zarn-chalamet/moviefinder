@@ -1,47 +1,54 @@
-import { Film, Code2, MessageCircle, Heart } from 'lucide-react';
+import { Film, Mail, Code2 } from 'lucide-react';
 import useAppStore from '../store/appStore';
 
 export default function Footer() {
   const { t, setCurrentPage } = useAppStore();
 
   return (
-    <footer className="relative border-t border-white/5 bg-dark-950">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+    <footer className="border-t border-white/5 bg-dark-950">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        {/* ============================================
+            Main grid
+        ============================================ */}
+        <div className="grid grid-cols-2 md:grid-cols-12 gap-8 md:gap-12">
           {/* Brand */}
-          <div className="md:col-span-2 space-y-4">
-            <div className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center">
-                <Film className="w-5 h-5 text-white" />
+          <div className="col-span-2 md:col-span-5 space-y-4">
+            <button
+              onClick={() => setCurrentPage('home')}
+              className="flex items-center gap-2 group"
+            >
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center">
+                <Film className="w-4 h-4 text-white" />
               </div>
-              <span className="text-lg font-bold text-gradient">MovieFinder</span>
-            </div>
-            <p className="text-sm text-dark-400 max-w-sm leading-relaxed">
-              AI-powered movie identification from social media clips. Built for Myanmar & Thai audiences with love.
+              <span className="text-base font-bold tracking-tight">MovieFinder</span>
+            </button>
+            <p className="text-sm text-dark-400 max-w-xs leading-relaxed">
+              {t('footer.tagline')}
             </p>
-            <div className="flex items-center gap-2 text-sm text-dark-500">
-              <span>🇲🇲 🇹🇭 🇬🇧</span>
-              <span>|</span>
-              <span>{t('footer.madeWith')}</span>
-              <span>{t('footer.audience')}</span>
+            <div className="flex items-center gap-3 font-mono text-xs text-dark-500">
+              <span>EN</span>
+              <div className="w-1 h-1 rounded-full bg-dark-700" />
+              <span>TH</span>
+              <div className="w-1 h-1 rounded-full bg-dark-700" />
+              <span>MY</span>
             </div>
           </div>
 
-          {/* Links */}
-          <div>
-            <h4 className="font-semibold text-sm mb-4 text-dark-300">Navigation</h4>
-            <ul className="space-y-2">
+          {/* Navigation */}
+          <div className="col-span-1 md:col-span-2">
+            <h4 className="text-xs font-mono uppercase tracking-widest text-dark-500 mb-4">
+              {t('footer.product')}
+            </h4>
+            <ul className="space-y-3">
               {[
-                { label: t('nav.home'), page: 'home' as const },
                 { label: t('nav.chat'), page: 'chat' as const },
                 { label: t('nav.trending'), page: 'trending' as const },
                 { label: t('nav.watchlist'), page: 'watchlist' as const },
-                { label: t('nav.about'), page: 'about' as const },
               ].map((item) => (
                 <li key={item.page}>
                   <button
                     onClick={() => setCurrentPage(item.page)}
-                    className="text-sm text-dark-500 hover:text-primary-400 transition-colors"
+                    className="text-sm text-dark-300 hover:text-white transition-colors"
                   >
                     {item.label}
                   </button>
@@ -50,36 +57,90 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* APIs */}
-          <div>
-            <h4 className="font-semibold text-sm mb-4 text-dark-300">Powered By</h4>
-            <ul className="space-y-2">
-              {['Google Gemini AI', 'TMDB', 'YouTube', 'OpenSubtitles'].map((api) => (
-                <li key={api}>
-                  <span className="text-sm text-dark-500">{api}</span>
+          {/* Company */}
+          <div className="col-span-1 md:col-span-2">
+            <h4 className="text-xs font-mono uppercase tracking-widest text-dark-500 mb-4">
+              {t('footer.company')}
+            </h4>
+            <ul className="space-y-3">
+              <li>
+                <button
+                  onClick={() => setCurrentPage('about')}
+                  className="text-sm text-dark-300 hover:text-white transition-colors"
+                >
+                  {t('nav.about')}
+                </button>
+              </li>
+              <li>
+                <a
+                  href="mailto:zarnn872@gmail.com"
+                  className="text-sm text-dark-300 hover:text-white transition-colors"
+                >
+                  {t('footer.contact')}
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  className="text-sm text-dark-300 hover:text-white transition-colors"
+                >
+                  {t('footer.privacy')}
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          {/* Powered by */}
+          <div className="col-span-2 md:col-span-3">
+            <h4 className="text-xs font-mono uppercase tracking-widest text-dark-500 mb-4">
+              {t('footer.poweredBy')}
+            </h4>
+            <ul className="space-y-3">
+              {[
+                { name: 'Google Gemini', url: 'https://gemini.google.com' },
+                { name: 'TMDB', url: 'https://www.themoviedb.org' },
+                { name: 'OpenSubtitles', url: 'https://www.opensubtitles.org' },
+              ].map((api) => (
+                <li key={api.name}>
+                  <a
+                    href={api.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-dark-300 hover:text-white transition-colors"
+                  >
+                    {api.name}
+                  </a>
                 </li>
               ))}
             </ul>
           </div>
         </div>
 
-        {/* Bottom */}
-        <div className="mt-10 pt-6 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-dark-600">
-            © {new Date().getFullYear()} MovieFinder. {t('footer.rights')}.
+        {/* ============================================
+            Bottom bar
+        ============================================ */}
+        <div className="mt-16 pt-8 border-t border-white/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <p className="text-xs text-dark-500">
+            © {new Date().getFullYear()} MovieFinder. {t('footer.rights')}
           </p>
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1 text-xs text-dark-500">
-              Made with <Heart className="w-3 h-3 text-red-400 fill-red-400" /> by MovieFinder Team
-            </span>
-            <div className="flex gap-2">
-              <button className="p-2 rounded-lg hover:bg-white/5 text-dark-500 hover:text-white transition-colors">
-                <Code2 className="w-4 h-4" />
-              </button>
-              <button className="p-2 rounded-lg hover:bg-white/5 text-dark-500 hover:text-white transition-colors">
-                <MessageCircle className="w-4 h-4" />
-              </button>
-            </div>
+
+          <div className="flex items-center gap-1">
+            <a
+              href="https://github.com/zarn-chalamet/moviefinder"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 rounded-lg text-dark-500 hover:text-white hover:bg-white/5 transition-colors"
+              aria-label="GitHub"
+            >
+              <Code2 className="w-4 h-4" strokeWidth={1.5} />
+            </a>
+            <a
+              href="mailto:zarnn872@gmail.com"
+              className="p-2 rounded-lg text-dark-500 hover:text-white hover:bg-white/5 transition-colors"
+              aria-label="Email"
+            >
+              <Mail className="w-4 h-4" strokeWidth={1.5} />
+            </a>
           </div>
         </div>
       </div>

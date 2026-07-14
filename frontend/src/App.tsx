@@ -11,6 +11,7 @@ import AboutPage from './components/AboutPage';
 import MovieDetailPage from './components/MovieDetailPage';
 import Footer from './components/Footer';
 import CTABanner from './components/CTABanner';
+import { useEffect } from 'react';
 
 const pageVariants = {
   initial: { opacity: 0, y: 20 },
@@ -53,8 +54,13 @@ function PageRenderer() {
 }
 
 export default function App() {
-  const { currentPage } = useAppStore();
+  const { currentPage, language } = useAppStore();
   const showFooter = currentPage !== 'chat';
+
+  useEffect(() => {
+    document.body.setAttribute('data-lang', language);
+  }, [language]);
+
 
   return (
     <div className="min-h-screen bg-dark-950 text-white">

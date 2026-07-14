@@ -1,289 +1,239 @@
 import { motion } from 'framer-motion';
-import {
-  Link2, Brain, CheckCircle, MessageSquare, Film, Globe, Upload,
-  Bookmark, Subtitles, Sparkles, Zap, Shield, Smartphone
-} from 'lucide-react';
+import { ArrowRight, Link2, Sparkles, Film, Zap, Globe } from 'lucide-react';
 import useAppStore from '../store/appStore';
 
 export default function AboutPage() {
   const { t, setCurrentPage } = useAppStore();
 
-  const steps = [
-    {
-      icon: Link2,
-      title: t('about.step1'),
-      description: t('about.step1.desc'),
-      color: 'from-blue-500 to-cyan-500',
-      shadowColor: 'shadow-blue-500/30',
-    },
-    {
-      icon: Brain,
-      title: t('about.step2'),
-      description: t('about.step2.desc'),
-      color: 'from-purple-500 to-pink-500',
-      shadowColor: 'shadow-purple-500/30',
-    },
-    {
-      icon: CheckCircle,
-      title: t('about.step3'),
-      description: t('about.step3.desc'),
-      color: 'from-green-500 to-emerald-500',
-      shadowColor: 'shadow-green-500/30',
-    },
-  ];
-
-  const features = [
-    { icon: Link2, title: 'URL Analysis', desc: 'Paste links from TikTok, Facebook, Instagram, YouTube', color: 'text-blue-400' },
-    { icon: MessageSquare, title: 'AI Chat', desc: 'Interactive conversation about movies in 3 languages', color: 'text-purple-400' },
-    { icon: Film, title: 'Full Movie Info', desc: 'Complete details, cast, ratings, and trailers', color: 'text-pink-400' },
-    { icon: Globe, title: 'Watch & Download Links', desc: 'Links to Netflix, free sites, torrents & more', color: 'text-cyan-400' },
-    { icon: Subtitles, title: 'Subtitles', desc: 'Thai, Burmese, and English subtitle downloads', color: 'text-yellow-400' },
-    { icon: Upload, title: 'Screenshot Search', desc: 'Upload a screenshot and AI identifies the movie', color: 'text-orange-400' },
-    { icon: Bookmark, title: 'Watchlist', desc: 'Save movies and track your watching progress', color: 'text-green-400' },
-    { icon: Sparkles, title: 'Recommendations', desc: 'AI-powered similar movie suggestions', color: 'text-indigo-400' },
-  ];
-
-  const techStack = [
-    { name: 'React 18', icon: '⚛️', desc: 'Frontend UI' },
-    { name: 'TypeScript', icon: '🔷', desc: 'Type Safety' },
-    { name: 'Spring Boot', icon: '🍃', desc: 'Backend API' },
-    { name: 'Google Gemini', icon: '🤖', desc: 'AI Engine' },
-    { name: 'TMDB', icon: '🎬', desc: 'Movie Data' },
-    { name: 'Tailwind CSS', icon: '🎨', desc: 'Styling' },
-  ];
-
   return (
-    <div className="min-h-screen bg-dark-950 pt-24 pb-16">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-16 space-y-4"
-        >
+    <div className="min-h-screen bg-dark-950 text-white">
+      {/* HERO */}
+      <section className="pt-32 pb-24 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto text-center">
           <motion.div
-            animate={{ y: [-5, 5, -5] }}
-            transition={{ duration: 3, repeat: Infinity }}
-            className="w-20 h-20 rounded-3xl bg-gradient-to-br from-primary-600 to-accent-500 flex items-center justify-center mx-auto shadow-xl shadow-primary-600/30"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/[0.02] text-xs text-dark-300 mb-8"
           >
-            <Film className="w-10 h-10 text-white" />
+            <span className="w-1.5 h-1.5 rounded-full bg-primary-500 animate-pulse" />
+            {t('about.badge')}
           </motion.div>
-          <h1 className="text-4xl sm:text-5xl font-black">
-            <span className="text-gradient">{t('about.title')}</span>
-          </h1>
-          <p className="text-dark-400 max-w-xl mx-auto text-lg leading-relaxed">
-            {t('about.description')}
-          </p>
-          <div className="flex justify-center gap-3">
-            <span className="px-3 py-1.5 rounded-full glass-light text-sm">🇬🇧 English</span>
-            <span className="px-3 py-1.5 rounded-full glass-light text-sm">🇹🇭 ภาษาไทย</span>
-            <span className="px-3 py-1.5 rounded-full glass-light text-sm">🇲🇲 မြန်မာ</span>
-          </div>
-        </motion.div>
 
-        {/* How It Works */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="mb-20"
-        >
-          <h2 className="text-2xl font-bold text-center mb-10">{t('about.howItWorks')}</h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            {steps.map((step, i) => (
-              <motion.div
-                key={step.title}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 + i * 0.15 }}
-                className="relative glass rounded-2xl p-8 text-center hover:bg-white/5 transition-all group"
-              >
-                {/* Step number */}
-                <div className="absolute -top-3 left-6 px-3 py-1 rounded-full bg-dark-900 text-primary-400 text-xs font-bold border border-primary-500/20">
-                  Step {i + 1}
-                </div>
-
-                <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${step.color} flex items-center justify-center mx-auto mb-5 shadow-lg ${step.shadowColor} group-hover:scale-110 transition-transform`}>
-                  <step.icon className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-lg font-bold mb-2">{step.title}</h3>
-                <p className="text-dark-400 text-sm leading-relaxed">{step.description}</p>
-
-                {/* Connector arrow */}
-                {i < 2 && (
-                  <div className="hidden md:block absolute top-1/2 -right-3 text-dark-600 text-2xl">→</div>
-                )}
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* The Problem */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="mb-20"
-        >
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Before */}
-            <div className="glass rounded-2xl p-8 border-red-500/10">
-              <h3 className="text-lg font-bold text-red-400 mb-6 flex items-center gap-2">
-                😫 Before MovieFinder
-              </h3>
-              <div className="space-y-4">
-                {[
-                  { emoji: '😫', text: 'See cool movie clip on FB/TikTok' },
-                  { emoji: '❓', text: 'No movie name mentioned' },
-                  { emoji: '🔍', text: 'Search Google with bad description' },
-                  { emoji: '😤', text: "Can't find it. Give up." },
-                ].map((item, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.5 + i * 0.1 }}
-                    className="flex items-center gap-3 p-3 rounded-xl bg-red-500/5"
-                  >
-                    <span className="text-xl">{item.emoji}</span>
-                    <span className="text-sm text-dark-300">{item.text}</span>
-                    {i < 3 && <span className="ml-auto text-dark-600">↓</span>}
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-
-            {/* After */}
-            <div className="glass rounded-2xl p-8 border-green-500/10">
-              <h3 className="text-lg font-bold text-green-400 mb-6 flex items-center gap-2">
-                😊 After MovieFinder
-              </h3>
-              <div className="space-y-4">
-                {[
-                  { emoji: '😊', text: 'See cool movie clip' },
-                  { emoji: '🔗', text: 'Paste the link' },
-                  { emoji: '🤖', text: 'AI identifies the movie in seconds' },
-                  { emoji: '📋', text: 'Get full info + where to watch' },
-                  { emoji: '🎉', text: 'Watch the movie!' },
-                ].map((item, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.5 + i * 0.1 }}
-                    className="flex items-center gap-3 p-3 rounded-xl bg-green-500/5"
-                  >
-                    <span className="text-xl">{item.emoji}</span>
-                    <span className="text-sm text-dark-300">{item.text}</span>
-                    {i < 4 && <span className="ml-auto text-dark-600">↓</span>}
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Features */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="mb-20"
-        >
-          <h2 className="text-2xl font-bold text-center mb-10">{t('about.features')}</h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {features.map((f, i) => (
-              <motion.div
-                key={f.title}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 + i * 0.05 }}
-                className="glass rounded-xl p-5 hover:bg-white/5 transition-all group"
-              >
-                <f.icon className={`w-6 h-6 ${f.color} mb-3 group-hover:scale-110 transition-transform`} />
-                <h4 className="font-semibold text-sm mb-1">{f.title}</h4>
-                <p className="text-xs text-dark-400 leading-relaxed">{f.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Tech Stack */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="mb-20"
-        >
-          <h2 className="text-2xl font-bold text-center mb-10">Tech Stack</h2>
-          <div className="flex flex-wrap justify-center gap-4">
-            {techStack.map((tech, i) => (
-              <motion.div
-                key={tech.name}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.7 + i * 0.05 }}
-                className="glass rounded-xl p-4 flex items-center gap-3 hover:bg-white/5 transition-all"
-              >
-                <span className="text-2xl">{tech.icon}</span>
-                <div>
-                  <p className="text-sm font-semibold">{tech.name}</p>
-                  <p className="text-xs text-dark-400">{tech.desc}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Key Highlights */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7 }}
-          className="mb-16"
-        >
-          <div className="grid sm:grid-cols-3 gap-6">
-            {[
-              { icon: Zap, title: 'Lightning Fast', desc: 'AI identifies movies in under 3 seconds', color: 'from-yellow-500 to-orange-500' },
-              { icon: Shield, title: '100% Free', desc: 'No hidden costs, no subscriptions needed', color: 'from-green-500 to-emerald-500' },
-              { icon: Smartphone, title: 'Mobile First', desc: 'Beautiful experience on any device', color: 'from-blue-500 to-indigo-500' },
-            ].map((item, i) => (
-              <motion.div
-                key={item.title}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.8 + i * 0.1 }}
-                className="text-center glass rounded-2xl p-8 group hover:bg-white/5 transition-all"
-              >
-                <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${item.color} flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform shadow-lg`}>
-                  <item.icon className="w-7 h-7 text-white" />
-                </div>
-                <h3 className="font-bold mb-1">{item.title}</h3>
-                <p className="text-sm text-dark-400">{item.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.9 }}
-          className="text-center space-y-6"
-        >
-          <h2 className="text-3xl font-black text-gradient">Ready to find your movie?</h2>
-          <motion.button
-            onClick={() => setCurrentPage('chat')}
-            className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-primary-600 to-accent-500 text-white font-bold text-lg shadow-xl shadow-primary-600/30 hover:shadow-primary-600/50 transition-all"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <motion.h1
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.1 }}
+            className="text-6xl sm:text-7xl lg:text-8xl font-bold tracking-[-0.04em] leading-[0.95] mb-8"
           >
-            <Sparkles className="w-5 h-5" />
-            {t('hero.cta')}
-          </motion.button>
-        </motion.div>
-      </div>
+            {t('about.hero.title1')}
+            <br />
+            <span className="text-gradient">{t('about.hero.title2')}</span>
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="text-lg sm:text-xl text-dark-400 max-w-2xl mx-auto leading-relaxed"
+          >
+            {t('about.hero.subtitle')}
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+            className="mt-10 flex items-center justify-center gap-3"
+          >
+            <button
+              onClick={() => setCurrentPage('chat')}
+              className="group inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white text-dark-950 font-semibold text-sm hover:bg-dark-200 transition-colors"
+            >
+              {t('about.hero.tryNow')}
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+            </button>
+            <button
+              onClick={() => setCurrentPage('trending')}
+              className="px-6 py-3 rounded-full border border-white/10 text-sm text-dark-200 hover:bg-white/5 hover:border-white/20 transition-colors"
+            >
+              {t('about.hero.browse')}
+            </button>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1, delay: 0.8 }}
+            className="mt-16 flex items-center justify-center gap-6 text-xs text-dark-500"
+          >
+            <span>{t('about.hero.available')}</span>
+            <div className="flex items-center gap-4 font-mono">
+              <span className="hover:text-white transition-colors">EN</span>
+              <div className="w-1 h-1 rounded-full bg-dark-700" />
+              <span className="hover:text-white transition-colors">TH</span>
+              <div className="w-1 h-1 rounded-full bg-dark-700" />
+              <span className="hover:text-white transition-colors">MY</span>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* HOW IT WORKS */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8 border-t border-white/5">
+        <div className="max-w-5xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="mb-16"
+          >
+            <p className="text-xs font-mono uppercase tracking-widest text-primary-400 mb-3">
+              {t('about.howItWorks.label')}
+            </p>
+            <h2 className="text-4xl sm:text-5xl font-bold tracking-[-0.03em] leading-tight max-w-2xl">
+              {t('about.howItWorks.title')}
+            </h2>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
+            {[
+              { num: '01', icon: Link2, titleKey: 'about.step1.title', descKey: 'about.step1.desc' },
+              { num: '02', icon: Sparkles, titleKey: 'about.step2.title', descKey: 'about.step2.desc' },
+              { num: '03', icon: Film, titleKey: 'about.step3.title', descKey: 'about.step3.desc' },
+            ].map((step, i) => (
+              <motion.div
+                key={step.num}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                className="group"
+              >
+                <div className="flex items-baseline gap-3 mb-6">
+                  <span className="font-mono text-xs text-dark-600">{step.num}</span>
+                  <div className="h-px flex-1 bg-white/5" />
+                </div>
+                <step.icon className="w-6 h-6 text-primary-400 mb-4" strokeWidth={1.5} />
+                <h3 className="text-xl font-semibold mb-2 tracking-tight">{t(step.titleKey)}</h3>
+                <p className="text-dark-400 leading-relaxed text-sm">{t(step.descKey)}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FEATURES */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8 border-t border-white/5">
+        <div className="max-w-5xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mb-16"
+          >
+            <p className="text-xs font-mono uppercase tracking-widest text-primary-400 mb-3">
+              {t('about.features.label')}
+            </p>
+            <h2 className="text-4xl sm:text-5xl font-bold tracking-[-0.03em] leading-tight max-w-2xl">
+              {t('about.features.title')}
+            </h2>
+          </motion.div>
+
+          <div className="grid sm:grid-cols-2 gap-px bg-white/5 rounded-2xl overflow-hidden border border-white/5">
+            {[
+              { icon: Zap, titleKey: 'about.feature1.title', descKey: 'about.feature1.desc' },
+              { icon: Globe, titleKey: 'about.feature2.title', descKey: 'about.feature2.desc' },
+              { icon: Film, titleKey: 'about.feature3.title', descKey: 'about.feature3.desc' },
+              { icon: Sparkles, titleKey: 'about.feature4.title', descKey: 'about.feature4.desc' },
+            ].map((f, i) => (
+              <motion.div
+                key={f.titleKey}
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: i * 0.05 }}
+                className="bg-dark-950 p-8 hover:bg-white/[0.02] transition-colors group"
+              >
+                <f.icon className="w-5 h-5 text-dark-500 group-hover:text-primary-400 transition-colors mb-4" strokeWidth={1.5} />
+                <h3 className="font-semibold mb-2 text-base tracking-tight">{t(f.titleKey)}</h3>
+                <p className="text-sm text-dark-400 leading-relaxed">{t(f.descKey)}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* PRINCIPLES */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8 border-t border-white/5">
+        <div className="max-w-5xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mb-16"
+          >
+            <p className="text-xs font-mono uppercase tracking-widest text-primary-400 mb-3">
+              {t('about.principles.label')}
+            </p>
+            <h2 className="text-4xl sm:text-5xl font-bold tracking-[-0.03em] leading-tight max-w-2xl">
+              {t('about.principles.title')}
+            </h2>
+          </motion.div>
+
+          <div className="grid sm:grid-cols-3 gap-12">
+            {[
+              { titleKey: 'about.principle1.title', descKey: 'about.principle1.desc' },
+              { titleKey: 'about.principle2.title', descKey: 'about.principle2.desc' },
+              { titleKey: 'about.principle3.title', descKey: 'about.principle3.desc' },
+            ].map((p, i) => (
+              <motion.div
+                key={p.titleKey}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+              >
+                <h3 className="text-3xl font-bold tracking-[-0.03em] mb-3 text-gradient inline-block">
+                  {t(p.titleKey)}
+                </h3>
+                <p className="text-dark-400 leading-relaxed">{t(p.descKey)}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FINAL CTA */}
+      <section className="py-32 px-4 sm:px-6 lg:px-8 border-t border-white/5">
+        <div className="max-w-3xl mx-auto text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+          >
+            <h2 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-[-0.04em] leading-[1.05] mb-8">
+              {t('about.cta.title1')}
+              <br />
+              <span className="text-gradient">{t('about.cta.title2')}</span>
+            </h2>
+
+            <button
+              onClick={() => setCurrentPage('chat')}
+              className="group inline-flex items-center gap-2 px-8 py-4 rounded-full bg-white text-dark-950 font-semibold hover:bg-dark-200 transition-colors"
+            >
+              {t('about.cta.button')}
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </button>
+
+            <p className="mt-6 text-xs text-dark-500">
+              {t('about.cta.free')}
+            </p>
+          </motion.div>
+        </div>
+      </section>
     </div>
   );
 }

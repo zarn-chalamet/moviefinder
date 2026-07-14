@@ -33,7 +33,9 @@
   --color-neon-cyan: #22d3ee;
   --color-neon-green: #4ade80;
 
-  --font-sans: 'Inter', 'Noto Sans Thai', 'Noto Sans Myanmar', system-ui, sans-serif;
+  --font-sans: 'Geist', 'Inter', 'Noto Sans Thai', 'Noto Sans Myanmar', system-ui, sans-serif;
+  --font-serif: 'Instrument Serif', Georgia, serif;
+  --font-mono: 'JetBrains Mono', monospace;
 }
 
 * {
@@ -63,7 +65,7 @@ html {
 }
 
 body {
-  font-family: 'Inter', 'Noto Sans Thai', 'Noto Sans Myanmar', system-ui, sans-serif;
+  font-family: 'Geist', 'Inter', 'Noto Sans Thai', 'Noto Sans Myanmar', system-ui, sans-serif;
   background-color: #020617;
   color: #f8fafc;
   overflow-x: hidden;
@@ -225,4 +227,51 @@ img[loading="lazy"] {
 }
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+/* ============================================
+   Burmese Language - Reduce large text sizes
+   Burmese script is naturally taller/wider than Latin
+   ============================================ */
+body[data-lang="my"] {
+  /* Reduce all large headings by ~30-40% */
+}
+
+/* Hero headlines - reduce dramatically */
+body[data-lang="my"] .text-8xl {
+  font-size: 3.5rem;
+  line-height: 1;
+}
+body[data-lang="my"] .text-7xl {
+  font-size: 3rem;
+  line-height: 1;
+}
+body[data-lang="my"] .text-6xl {
+  font-size: 2.5rem;
+  line-height: 1.05;
+}
+body[data-lang="my"] .text-5xl {
+  font-size: 2rem;
+  line-height: 1.1;
+}
+body[data-lang="my"] .text-4xl {
+  font-size: 1.75rem;
+  line-height: 1.15;
+}
+body[data-lang="my"] .text-3xl {
+  font-size: 1.5rem;
+  line-height: 1.2;
+}
+
+/* Adjust line height for readability */
+body[data-lang="my"] h1,
+body[data-lang="my"] h2,
+body[data-lang="my"] h3 {
+  line-height: 1.3;
+}
+
+/* Loosen letter tracking (Burmese doesn't need tight tracking) */
+body[data-lang="my"] .tracking-tight,
+body[data-lang="my"] [class*="tracking-["] {
+  letter-spacing: 0 !important;
 }
