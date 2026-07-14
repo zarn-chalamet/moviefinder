@@ -72,6 +72,7 @@ const translations: Record<Language, TranslationKeys> = {
     // WATCHLIST/SAVED MOVIES PAGE
     // ============================================
     'watchlist.title': 'Saved Movies',                                       // Page title
+    'watchlist.subtitle': 'Your personal collection of movies to watch later.',
     'watchlist.empty': 'No saved movies yet. Start finding movies!',         // Empty state message
     'watchlist.wantToWatch': 'Want to Watch',                                // Filter/status - planned to watch
     'watchlist.watching': 'Watching',                                        // Filter/status - currently watching
@@ -83,7 +84,18 @@ const translations: Record<Language, TranslationKeys> = {
     // ============================================
     'trending.title': 'Trending Now',                                        // Page title
     'trending.subtitle': 'Popular movies that everyone is talking about',    // Page subtitle
+    'trending.badge': 'Popular right now',
     'trending.viewAll': 'View All Trending Movies',
+    'trending.emptyGenre': 'No movies found for this genre.',
+    'common.details': 'Details',
+    'genre.all': 'All',
+    'genre.action': 'Action',
+    'genre.scifi': 'Sci-Fi',
+    'genre.drama': 'Drama',
+    'genre.thriller': 'Thriller',
+    'genre.comedy': 'Comedy',
+    'genre.animation': 'Animation',
+    'genre.adventure': 'Adventure',
 
     // ============================================
     // ABOUT PAGE - HERO (big headlines, editorial/premium tone)
@@ -277,6 +289,7 @@ const translations: Record<Language, TranslationKeys> = {
     // WATCHLIST/SAVED MOVIES PAGE
     // ============================================
     'watchlist.title': 'หนังที่บันทึกไว้',
+    'watchlist.subtitle': 'คอลเลกชันหนังส่วนตัวของคุณที่จะดูในภายหลัง',
     'watchlist.empty': 'ยังไม่มีหนังที่บันทึกไว้เลย มาเริ่มหาหนังเรื่องโปรดกัน!',
     'watchlist.wantToWatch': 'อยากดู',
     'watchlist.watching': 'กำลังดูอยู่',
@@ -288,7 +301,18 @@ const translations: Record<Language, TranslationKeys> = {
     // ============================================
     'trending.title': 'กำลังมาแรงตอนนี้',
     'trending.subtitle': 'หนังฮิตติดกระแสที่ใครๆ ก็กำลังพูดถึง',
+    'trending.badge': 'กำลังเป็นที่นิยมตอนนี้',
     'trending.viewAll': 'ดูหนังมาแรงทั้งหมด',
+    'trending.emptyGenre': 'ไม่พบหนังในหมวดนี้',
+    'common.details': 'รายละเอียด',
+    'genre.all': 'ทั้งหมด',
+    'genre.action': 'แอ็กชัน',
+    'genre.scifi': 'ไซไฟ',
+    'genre.drama': 'ดราม่า',
+    'genre.thriller': 'ระทึกขวัญ',
+    'genre.comedy': 'คอมเมดี้',
+    'genre.animation': 'แอนิเมชัน',
+    'genre.adventure': 'ผจญภัย',
 
     // ============================================
     // ABOUT PAGE - HERO (big headlines, editorial/premium tone)
@@ -460,6 +484,7 @@ const translations: Record<Language, TranslationKeys> = {
     // WATCHLIST/SAVED MOVIES PAGE
     // ============================================
     'watchlist.title': 'သိမ်းထားသော ရုပ်ရှင်များ',
+    'watchlist.subtitle': 'နောက်မှကြည့်ရှုရန် သင့်ကိုယ်ပိုင် ရုပ်ရှင်စုဆောင်းမှု။',
     'watchlist.empty': 'သိမ်းထားတဲ့ ရုပ်ရှင်မရှိသေးပါဘူး။ အခုပဲ ရုပ်ရှင် စရှာကြည့်လိုက်ပါ!',
     'watchlist.wantToWatch': 'ကြည့်ချင်တာတွေ',
     'watchlist.watching': 'ကြည့်နေဆဲ',
@@ -471,7 +496,18 @@ const translations: Record<Language, TranslationKeys> = {
     // ============================================
     'trending.title': 'လောလောဆယ် ခေတ်စားနေတာတွေ',
     'trending.subtitle': 'လူပြောအများဆုံးနဲ့ လူကြိုက်အများဆုံး ရုပ်ရှင်များ',
+    'trending.badge': 'အခုလက်ရှိ လူကြိုက်များနေသည်',
     'trending.viewAll': 'ခေတ်စားနေသော ရုပ်ရှင်အားလုံး ကြည့်မယ်',
+    'trending.emptyGenre': 'ဒီအမျိုးအစားအတွက် ရုပ်ရှင်မတွေ့ပါ',
+    'common.details': 'အသေးစိတ်',
+    'genre.all': 'အားလုံး',
+    'genre.action': 'အက်ရှင်',
+    'genre.scifi': 'သိပ္ပံစိတ်ကူးယဉ်',
+    'genre.drama': 'ဒရာမာ',
+    'genre.thriller': 'သည်းထိတ်ရင်ဖို',
+    'genre.comedy': 'ဟာသ',
+    'genre.animation': 'ကာတွန်း',
+    'genre.adventure': 'စွန့်စားခန်း',
 
     // ============================================
     // ABOUT PAGE - HERO (big headlines, editorial/premium tone)
