@@ -940,7 +940,7 @@ public class ChatService {
     }
 
     // Smart TMDB search with title variations
-    private MovieResponse smartTmdbSearch(String title, boolean preferTv) {
+    public  MovieResponse smartTmdbSearch(String title, boolean preferTv) {
         if (title == null || title.isBlank()) return null;
 
         MovieResponse result = trySearch(title, preferTv);

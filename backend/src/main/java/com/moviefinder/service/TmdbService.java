@@ -143,6 +143,46 @@ public class TmdbService {
         }
     }
 
+    private List<MovieResponse> tryMovieEndpoint(Long id, String language, String endpoint) {
+        try {
+            String url = baseUrl + "/movie/" + id + "/" + endpoint + "?api_key=" + apiKey
+                    + "&language=" + getTmdbLanguage(language);
+
+            String response = webClient.get()
+                    .uri(url)
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block();
+
+            return parseMovieResults(response);
+        } catch (Exception e) {
+            log.debug("Movie /{} failed for id {}: {}", endpoint, id, e.getMessage());
+            return List.of();
+        }
+    }
+
+    private List<MovieResponse> tryTvEndpoint(Long id, String language, String endpoint) {
+        try {
+            String url = baseUrl + "/tv/" + id + "/" + endpoint + "?api_key=" + apiKey
+                    + "&language=" + getTmdbLanguage(language);
+
+            String response = webClient.get()
+                    .uri(url)
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block();
+
+            return parseTvResults(response);
+        } catch (Exception e) {
+            log.debug("TV /{} failed for id {}: {}", endpoint, id, e.getMessage());
+            return List.of();
+        }
+    }
+
+    private List<MovieResponse> limitResults(List<MovieResponse> results, int limit) {
+        return results.size() > limit ? results.subList(0, limit) : results;
+    }
+
     // Search TV shows including K-dramas, anime, series
     @Cacheable(value = "tv", key = "#query + '-' + #language")
     public List<MovieResponse> searchTvShows(String query, String language) {

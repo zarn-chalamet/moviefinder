@@ -57,7 +57,7 @@ export default function MovieDetailPage() {
       .finally(() => setIsLoadingStreaming(false));
 
     setIsLoadingSimilar(true);
-    movieService.getSimilarMovies(movieId, 6)
+    movieService.getSimilarMovies(movie, 6)
       .then(setSimilarMovies)
       .catch((err) => {
         console.error('Failed to fetch similar movies:', err);

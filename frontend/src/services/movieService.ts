@@ -96,17 +96,26 @@ export const movieService = {
     return response.data.data;
   },
 
-  // Get similar movies - real data
-  async getSimilarMovies(movieId: number, limit: number = 6): Promise<Movie[]> {
-    if (config.USE_MOCK_API) {
-      return this.mockGetSimilarMovies(movieId, limit);
-    }
+  /**
+   * Get similar movies based on a movie
+   */
+  async getSimilarMovies(movie: Movie, limit: number = 6): Promise<Movie[]> {
+      if (config.USE_MOCK_API) {
+          return this.mockGetSimilarMovies(movie.id, limit);
+      }
 
-    const response = await api.get<ApiResponse<Movie[]>>(
-      `/movies/${movieId}/similar`,
-      { params: { limit } }
-    );
-    return response.data.data;
+      // POST with full movie context (like chat does)
+      const response = await api.post<ApiResponse<Movie[]>>(
+          `/movies/${movie.tmdbId || movie.id}/similar`,
+          {
+              title: movie.title,
+              year: movie.year,
+              genres: movie.genres,
+              overview: movie.overview,
+          },
+          { params: { limit } }
+      );
+      return response.data.data;
   },
 
   /**
