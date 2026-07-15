@@ -1,8 +1,12 @@
-import { Film, Mail, Code2 } from 'lucide-react';
+import { Film, Mail, Globe } from 'lucide-react';
+import { GithubIcon } from './icons/GithubIcon';
 import useAppStore from '../store/appStore';
 
 export default function Footer() {
   const { t, setCurrentPage } = useAppStore();
+
+  // Consistent styling for ALL footer links (button + anchor)
+  const linkClass = "block text-left text-sm text-dark-300 hover:text-white transition-colors leading-6";
 
   return (
     <footer className="border-t border-white/5 bg-dark-950">
@@ -34,7 +38,7 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Navigation */}
+          {/* Navigation / Product */}
           <div className="col-span-1 md:col-span-2">
             <h4 className="text-xs font-mono uppercase tracking-widest text-dark-500 mb-4">
               {t('footer.product')}
@@ -48,7 +52,7 @@ export default function Footer() {
                 <li key={item.page}>
                   <button
                     onClick={() => setCurrentPage(item.page)}
-                    className="text-sm text-dark-300 hover:text-white transition-colors"
+                    className={linkClass}
                   >
                     {item.label}
                   </button>
@@ -66,26 +70,26 @@ export default function Footer() {
               <li>
                 <button
                   onClick={() => setCurrentPage('about')}
-                  className="text-sm text-dark-300 hover:text-white transition-colors"
+                  className={linkClass}
                 >
                   {t('nav.about')}
                 </button>
               </li>
               <li>
-                <a
-                  href="mailto:zarnn872@gmail.com"
-                  className="text-sm text-dark-300 hover:text-white transition-colors"
+                <button
+                  onClick={() => setCurrentPage('contact')}
+                  className={linkClass}
                 >
                   {t('footer.contact')}
-                </a>
+                </button>
               </li>
               <li>
-                <a
-                  href="#"
-                  className="text-sm text-dark-300 hover:text-white transition-colors"
+                <button
+                  onClick={() => setCurrentPage('privacy')}
+                  className={linkClass}
                 >
                   {t('footer.privacy')}
-                </a>
+                </button>
               </li>
             </ul>
           </div>
@@ -106,7 +110,7 @@ export default function Footer() {
                     href={api.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm text-dark-300 hover:text-white transition-colors"
+                    className={linkClass}
                   >
                     {api.name}
                   </a>
@@ -120,24 +124,43 @@ export default function Footer() {
             Bottom bar
         ============================================ */}
         <div className="mt-16 pt-8 border-t border-white/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <p className="text-xs text-dark-500">
-            © {new Date().getFullYear()} MovieFinder. {t('footer.rights')}
-          </p>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+            <p className="text-xs text-dark-500">
+              © {new Date().getFullYear()} MovieFinder. {t('footer.rights')}
+            </p>
+          </div>
 
           <div className="flex items-center gap-1">
+            {/* Portfolio */}
+            <a
+              href="https://portfolio-template-bay-eight.vercel.app"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 rounded-lg text-dark-500 hover:text-white hover:bg-white/5 transition-colors"
+              aria-label="Portfolio"
+              title="Portfolio"
+            >
+              <Globe className="w-4 h-4" strokeWidth={1.5} />
+            </a>
+
+            {/* GitHub */}
             <a
               href="https://github.com/zarn-chalamet/moviefinder"
               target="_blank"
               rel="noopener noreferrer"
               className="p-2 rounded-lg text-dark-500 hover:text-white hover:bg-white/5 transition-colors"
               aria-label="GitHub"
+              title="GitHub"
             >
-              <Code2 className="w-4 h-4" strokeWidth={1.5} />
+              <GithubIcon className="w-4 h-4" strokeWidth={1.5} />
             </a>
+
+            {/* Email */}
             <a
               href="mailto:zarnn872@gmail.com"
               className="p-2 rounded-lg text-dark-500 hover:text-white hover:bg-white/5 transition-colors"
               aria-label="Email"
+              title="Email"
             >
               <Mail className="w-4 h-4" strokeWidth={1.5} />
             </a>

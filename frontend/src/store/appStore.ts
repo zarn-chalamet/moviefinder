@@ -25,7 +25,7 @@ interface AppState {
   t: (key: string) => string;
 
   // Navigation
-  currentPage: 'home' | 'chat' | 'trending' | 'watchlist' | 'about' | 'movie-detail';
+  currentPage: 'home' | 'chat' | 'trending' | 'watchlist' | 'about' | 'movie-detail'   |'privacy' | 'contact'; 
   setCurrentPage: (page: AppState['currentPage']) => void;
 
   // Chat

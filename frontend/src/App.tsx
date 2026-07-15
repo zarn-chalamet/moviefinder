@@ -12,6 +12,8 @@ import MovieDetailPage from './components/MovieDetailPage';
 import Footer from './components/Footer';
 import CTABanner from './components/CTABanner';
 import { useEffect } from 'react';
+import PrivacyPage from './components/PrivacyPage';
+import ContactPage from './components/ContactPage';
 
 const pageVariants = {
   initial: { opacity: 0, y: 20 },
@@ -48,6 +50,8 @@ function PageRenderer() {
         {currentPage === 'watchlist' && <WatchlistPage />}
         {currentPage === 'about' && <AboutPage />}
         {currentPage === 'movie-detail' && <MovieDetailPage />}
+        {currentPage === 'privacy' && <PrivacyPage />}
+        {currentPage === 'contact' && <ContactPage />}
       </motion.div>
     </AnimatePresence>
   );

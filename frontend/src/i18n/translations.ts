@@ -180,6 +180,7 @@ const translations: Record<Language, TranslationKeys> = {
     'footer.contact': 'Contact',                                             // Contact us link
     'footer.privacy': 'Privacy',                                             // Privacy policy link
     'footer.rights': 'All rights reserved.',                                 // Copyright text
+    'footer.builtBy': 'Built by',
 
     // ============================================
     // COMMON / SHARED (used across many pages)
@@ -215,6 +216,46 @@ const translations: Record<Language, TranslationKeys> = {
     'movie.googleSearch': 'Search Google',                                   // Google search button
     'movie.saved': 'Saved',                                                  // Movie is in watchlist state
     'movie.saveMovie': 'Save Movie',                                         // Save to watchlist button
+
+    // Privacy
+    'privacy.badge': 'Privacy Policy',
+    'privacy.title': 'Your privacy matters.',
+    'privacy.subtitle': 'We keep it simple — no accounts, no tracking, no drama.',
+    'privacy.lastUpdated': 'Last updated',
+    'privacy.intro': 'MovieFinder is designed with privacy in mind. We collect the absolute minimum needed to identify movies and improve the service. This page explains exactly what happens with your data.',
+
+    'privacy.section1.title': 'What we collect',
+    'privacy.section1.desc': 'When you paste a link or upload an image, we send it to Google Gemini AI for analysis. We do not store your videos, images, or search history on our servers. Your saved movies are stored only in your browser (localStorage).',
+
+    'privacy.section2.title': 'What we track',
+    'privacy.section2.desc': 'We use basic analytics to understand how many people use the app and which features work best. We do not track your identity, location, or browsing behavior outside MovieFinder.',
+
+    'privacy.section3.title': 'Cookies',
+    'privacy.section3.desc': 'We use minimal cookies for essential functions only (like remembering your language preference). No third-party advertising cookies.',
+
+    'privacy.section4.title': 'Third-party services',
+    'privacy.section4.desc': 'We use Google Gemini AI for movie identification and TMDB for movie data. These services have their own privacy policies. We do not share personal information with them.',
+
+    'privacy.contact.title': 'Questions?',
+    'privacy.contact.desc': 'Reach out if you have any concerns about privacy.',
+
+    // Contact
+    'contact.badge': 'Get in touch',
+    'contact.title1': "Let's",
+    'contact.title2': 'talk.',
+    'contact.subtitle': 'Whether you found a bug, have a feature idea, or just want to say hi — we would love to hear from you.',
+    'contact.reasons.label': 'What is on your mind?',
+    'contact.reasons.bug': 'Report a bug',
+    'contact.reasons.feature': 'Suggest a feature',
+    'contact.reasons.help': 'Get help',
+    'contact.reasons.other': 'Say hello',
+    'contact.methods.label': 'Ways to reach us',
+    'contact.method1.title': 'Email',
+    'contact.method1.desc': 'Best for private conversations',
+    'contact.method2.title': 'GitHub',
+    'contact.method2.desc': 'For bug reports and feature requests',
+    'contact.responseTime': 'We typically respond within 1-2 days.',
+
   },
 
   th: {
@@ -413,6 +454,7 @@ const translations: Record<Language, TranslationKeys> = {
     'footer.contact': 'ติดต่อเรา',
     'footer.privacy': 'นโยบายความเป็นส่วนตัว',
     'footer.rights': 'สงวนลิขสิทธิ์ทั้งหมด',
+    'footer.builtBy': 'สร้างโดย',
 
     // ============================================
     // COMMON / SHARED (used across many pages)
@@ -426,6 +468,46 @@ const translations: Record<Language, TranslationKeys> = {
     'common.search': 'ค้นหา',
     'common.back': 'กลับ',
     'common.more': 'เพิ่มเติม',
+
+    // privacy
+    'privacy.badge': 'นโยบายความเป็นส่วนตัว',
+    'privacy.title': 'ความเป็นส่วนตัวของคุณสำคัญ',
+    'privacy.subtitle': 'เราทำให้เรียบง่าย — ไม่มีบัญชี ไม่มีการติดตาม ไม่มีเรื่องยุ่งยาก',
+    'privacy.lastUpdated': 'อัปเดตล่าสุด',
+    'privacy.intro': 'MovieFinder ออกแบบโดยคำนึงถึงความเป็นส่วนตัว เราเก็บข้อมูลน้อยที่สุดเท่าที่จำเป็นในการค้นหาหนังและปรับปรุงบริการ หน้านี้จะอธิบายว่าเกิดอะไรขึ้นกับข้อมูลของคุณ',
+
+    'privacy.section1.title': 'ข้อมูลที่เราเก็บ',
+    'privacy.section1.desc': 'เมื่อคุณวางลิงก์หรืออัปโหลดรูปภาพ เราจะส่งไปยัง Google Gemini AI เพื่อวิเคราะห์ เราไม่เก็บวิดีโอ รูปภาพ หรือประวัติการค้นหาของคุณบนเซิร์ฟเวอร์ หนังที่คุณบันทึกจะเก็บไว้ในเบราว์เซอร์ของคุณเท่านั้น',
+
+    'privacy.section2.title': 'สิ่งที่เราติดตาม',
+    'privacy.section2.desc': 'เราใช้การวิเคราะห์พื้นฐานเพื่อเข้าใจว่ามีคนใช้แอปมากแค่ไหน และฟีเจอร์ไหนใช้งานได้ดีที่สุด เราไม่ติดตามตัวตน ตำแหน่ง หรือพฤติกรรมการท่องเว็บของคุณ',
+
+    'privacy.section3.title': 'คุกกี้',
+    'privacy.section3.desc': 'เราใช้คุกกี้น้อยที่สุดสำหรับฟังก์ชันจำเป็นเท่านั้น (เช่น จดจำภาษาที่คุณเลือก) ไม่มีคุกกี้โฆษณาจากบุคคลที่สาม',
+
+    'privacy.section4.title': 'บริการของบุคคลที่สาม',
+    'privacy.section4.desc': 'เราใช้ Google Gemini AI สำหรับการค้นหาหนัง และ TMDB สำหรับข้อมูลหนัง บริการเหล่านี้มีนโยบายความเป็นส่วนตัวของตัวเอง เราไม่แชร์ข้อมูลส่วนตัวกับพวกเขา',
+
+    'privacy.contact.title': 'มีคำถาม?',
+    'privacy.contact.desc': 'ติดต่อเราหากคุณมีข้อกังวลเกี่ยวกับความเป็นส่วนตัว',
+
+    // contact
+    'contact.badge': 'ติดต่อเรา',
+    'contact.title1': 'มาคุยกัน',
+    'contact.title2': 'เลย',
+    'contact.subtitle': 'ไม่ว่าจะเจอบั๊ก มีไอเดียฟีเจอร์ หรือแค่อยากทักทาย เรายินดีรับฟังทุกเรื่อง',
+    'contact.reasons.label': 'มีอะไรอยากบอก?',
+    'contact.reasons.bug': 'รายงานบั๊ก',
+    'contact.reasons.feature': 'เสนอฟีเจอร์',
+    'contact.reasons.help': 'ขอความช่วยเหลือ',
+    'contact.reasons.other': 'ทักทาย',
+    'contact.methods.label': 'ช่องทางติดต่อ',
+    'contact.method1.title': 'อีเมล',
+    'contact.method1.desc': 'เหมาะกับการสนทนาส่วนตัว',
+    'contact.method2.title': 'GitHub',
+    'contact.method2.desc': 'สำหรับรายงานบั๊กและขอฟีเจอร์',
+    'contact.responseTime': 'เรามักจะตอบกลับภายใน 1-2 วัน',
+
   },
 
   my: {
@@ -624,6 +706,7 @@ const translations: Record<Language, TranslationKeys> = {
     'footer.contact': 'ဆက်သွယ်ရန်',
     'footer.privacy': 'ကိုယ်ရေးအချက်အလက် လုံခြုံမှု',
     'footer.rights': 'မူပိုင်ခွင့်အားလုံး ရရှိပြီးဖြစ်သည်။',
+    'footer.builtBy': 'ဖန်တီးသူ',
 
     // ============================================
     // COMMON / SHARED (used across many pages)
@@ -637,6 +720,45 @@ const translations: Record<Language, TranslationKeys> = {
     'common.search': 'ရှာဖွေရန်',
     'common.back': 'နောက်သို့',
     'common.more': 'နောက်ထပ်',
+
+    // privacy
+    'privacy.badge': 'ကိုယ်ရေးအချက်အလက် မူဝါဒ',
+    'privacy.title': 'သင့်ကိုယ်ရေး အရေးကြီးပါသည်',
+    'privacy.subtitle': 'ရိုးရိုးရှင်းရှင်း — အကောင့်မလို၊ ခြေရာမခံ၊ ဒုက္ခမပေး',
+    'privacy.lastUpdated': 'နောက်ဆုံးပြင်ဆင်ခဲ့သည်',
+    'privacy.intro': 'MovieFinder ကို ကိုယ်ရေးလုံခြုံမှုကို ရှေးရှုပြီး ဒီဇိုင်းဆွဲထားပါသည်။ ရုပ်ရှင်ရှာဖွေရန်နှင့် ဝန်ဆောင်မှုတိုးတက်စေရန် လိုအပ်သည့် အနည်းဆုံးအချက်အလက်ကိုသာ ကျွန်ုပ်တို့ ကောက်ယူပါသည်။',
+
+    'privacy.section1.title': 'ကျွန်ုပ်တို့ ကောက်ယူသည့်အရာ',
+    'privacy.section1.desc': 'သင်လင့်ခ်တစ်ခုကို ကူးထည့်လိုက်သည့်အခါ သို့မဟုတ် ပုံတစ်ပုံကို upload လုပ်လိုက်သည့်အခါ ခွဲခြမ်းစိတ်ဖြာရန်အတွက် Google Gemini AI သို့ ကျွန်ုပ်တို့ ပို့ပေးပါသည်။ သင့်ဗီဒီယိုများ၊ ပုံများ သို့မဟုတ် ရှာဖွေမှုမှတ်တမ်းများကို ကျွန်ုပ်တို့၏ server ပေါ်တွင် သိမ်းဆည်းမထားပါ။',
+
+    'privacy.section2.title': 'ကျွန်ုပ်တို့ ခြေရာခံသည့်အရာ',
+    'privacy.section2.desc': 'app ကို ဘယ်လောက် လူသုံးများသည်၊ ဘယ်လုပ်ဆောင်ချက်များက အကောင်းဆုံး အလုပ်လုပ်သည်ကို နားလည်ရန် အခြေခံ analytics ကို ကျွန်ုပ်တို့ အသုံးပြုပါသည်။ သင့်ကိုယ်ရေးအထောက်အထား၊ တည်နေရာ သို့မဟုတ် browsing အပြုအမူများကို ခြေရာမခံပါ။',
+
+    'privacy.section3.title': 'Cookies',
+    'privacy.section3.desc': 'အရေးကြီးသည့် လုပ်ဆောင်ချက်များအတွက်သာ cookies ကို အနည်းငယ်သာ အသုံးပြုပါသည် (ဥပမာ - သင့်ဘာသာစကား ရွေးချယ်မှုကို မှတ်ထားရန်)။ ကြော်ငြာ cookies များ မပါဝင်ပါ။',
+
+    'privacy.section4.title': 'တတိယအဖွဲ့အစည်း ဝန်ဆောင်မှုများ',
+    'privacy.section4.desc': 'ရုပ်ရှင်ရှာဖွေရန် Google Gemini AI နှင့် ရုပ်ရှင်ဒေတာအတွက် TMDB ကို ကျွန်ုပ်တို့ အသုံးပြုပါသည်။ ဤဝန်ဆောင်မှုများတွင် ၎င်းတို့၏ ကိုယ်ရေးမူဝါဒများ ရှိပါသည်။',
+
+    'privacy.contact.title': 'မေးခွန်းများရှိလား?',
+    'privacy.contact.desc': 'ကိုယ်ရေးလုံခြုံမှုနှင့် ပတ်သက်၍ စိုးရိမ်မှုများရှိပါက ဆက်သွယ်ပါ။',
+
+    // contact
+    'contact.badge': 'ဆက်သွယ်ရန်',
+    'contact.title1': 'စကားပြော',
+    'contact.title2': 'ကြရအောင်',
+    'contact.subtitle': 'bug တွေ့တာဖြစ်ဖြစ်၊ feature အကြံပြုချက်ဖြစ်ဖြစ်၊ နှုတ်ဆက်ရုံဖြစ်ဖြစ် ကျွန်ုပ်တို့ ကြားချင်ပါသည်။',
+    'contact.reasons.label': 'ဘာအကြောင်းလဲ?',
+    'contact.reasons.bug': 'Bug တင်ပြရန်',
+    'contact.reasons.feature': 'Feature အကြံပြုရန်',
+    'contact.reasons.help': 'အကူအညီရယူရန်',
+    'contact.reasons.other': 'နှုတ်ဆက်ရန်',
+    'contact.methods.label': 'ဆက်သွယ်နိုင်သည့်နည်းလမ်းများ',
+    'contact.method1.title': 'အီးမေးလ်',
+    'contact.method1.desc': 'သီးသန့် စကားပြောရန် အသင့်တော်ဆုံး',
+    'contact.method2.title': 'GitHub',
+    'contact.method2.desc': 'Bug reports နှင့် feature requests အတွက်',
+    'contact.responseTime': 'ကျွန်ုပ်တို့ ပုံမှန်အားဖြင့် 1-2 ရက်အတွင်း တုံ့ပြန်ပါသည်။',
   },
 };
 
