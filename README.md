@@ -1,4 +1,4 @@
-# 🎬 MovieFinder
+# <img src="./frontend/public/logo.svg" alt="MovieFinder Logo" width="25" /> MovieFinder
 
 <div align="center">
 
