@@ -458,9 +458,51 @@ For Korean, Chinese, Japanese, German, and other non-English films:
 
 ---
 
-## 🎨 Screenshots
+## 📸 Screenshots
 
-_screenshots
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/7d160b28-4b3c-4862-b967-51806b346180" alt="MovieFinder" width="1587" height="847" />
+  <p><em>Find any movie from TikTok, YouTube, Instagram, or Facebook clips using AI</em></p>
+</div>
+
+### ✨ Core Features
+
+<table>
+  <tr>
+    <td width="50%" align="center">
+      <img src="https://github.com/user-attachments/assets/a3ec420a-e479-4855-a3ee-a5eefd796a3b" alt="AI Chat" />
+      <br />
+      <sub><b>🤖 AI-Powered Chat</b></sub>
+      <br />
+      <sub>Paste any link, get instant identification</sub>
+    </td>
+    <td width="50%" align="center">
+      <img src="https://github.com/user-attachments/assets/83553772-9a81-4235-b2ea-e753b34d8a40" alt="Movie Details" />
+      <br />
+      <sub><b>🎬 Rich Movie Details</b></sub>
+      <br />
+      <sub>Streaming, cast, similar movies</sub>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <img src="https://github.com/user-attachments/assets/b5559391-377b-4a16-9b00-9ba85257830a" alt="Trending" />
+      <br />
+      <sub><b>🔥 Trending Movies</b></sub>
+      <br />
+      <sub>Discover what's popular right now</sub>
+    </td>
+    <td width="50%" align="center">
+      <img src="https://github.com/user-attachments/assets/ca3a115e-155b-4677-add5-a9d4f8774f94" alt="Languages" />
+      <br />
+      <sub><b>🌏 3 Languages</b></sub>
+      <br />
+      <sub>English, Thai (ไทย), Burmese (မြန်မာ)</sub>
+    </td>
+  </tr>
+</table>
+
+<br />
 
 ---
 
