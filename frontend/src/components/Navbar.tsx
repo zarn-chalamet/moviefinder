@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Film, Menu, X, ChevronDown } from 'lucide-react';
 import useAppStore from '../store/appStore';
 import { Language } from '../types';
+import Logo from './Logo';
 
 const languages: { code: Language; label: string; short: string }[] = [
   { code: 'en', label: 'English', short: 'EN' },
@@ -50,16 +51,8 @@ export default function Navbar() {
             {/* ============================================
                 Logo
             ============================================ */}
-            <button
-              onClick={() => setCurrentPage('home')}
-              className="flex items-center gap-2 group"
-            >
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center">
-                <Film className="w-4 h-4 text-white" />
-              </div>
-              <span className="text-base font-bold tracking-tight hidden sm:block">
-                MovieFinder
-              </span>
+            <button onClick={() => setCurrentPage('home')}>
+              <Logo showText={true} />
             </button>
 
             {/* ============================================

@@ -11,6 +11,7 @@ import { ChatMessage, Movie, StreamingProvider } from '../types';
 import ConfidenceBadge from './ConfidenceBadge';
 import MovieCandidatesList from './MovieCandidatesList';
 import ConfirmDialog from './ConfirmDialog';
+import Logo from './Logo';
 
 // ============================================
 // Typing Indicator
@@ -22,9 +23,7 @@ function TypingIndicator() {
       animate={{ opacity: 1, y: 0 }}
       className="flex gap-3 items-start"
     >
-      <div className="w-8 h-8 rounded-lg border border-white/10 bg-white/[0.02] flex items-center justify-center flex-shrink-0">
-        <Sparkles className="w-3.5 h-3.5 text-primary-400" strokeWidth={1.5} />
-      </div>
+      <Logo className="w-8 h-8" showText={false} />
       <div className="px-4 py-3 rounded-2xl rounded-tl-sm border border-white/5 bg-white/[0.02]">
         <div className="flex items-center gap-1.5">
           {[0, 1, 2].map((i) => (
@@ -316,18 +315,17 @@ function MessageBubble({
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className={`group flex gap-3 ${isUser ? 'flex-row-reverse' : ''}`}
+      className={`group flex gap-3 items-start ${isUser ? 'flex-row-reverse' : ''}`}
     >
+      {/* AI Avatar — sticks to top-left */}
       {!isUser && (
-        <div className={`w-8 h-8 rounded-lg border flex items-center justify-center flex-shrink-0 mt-1 ${
-          isError ? 'border-red-500/30 bg-red-500/10' : 'border-white/10 bg-white/[0.02]'
-        }`}>
-          {isError ? (
+        isError ? (
+          <div className="w-8 h-8 rounded-lg border border-red-500/30 bg-red-500/10 flex items-center justify-center flex-shrink-0">
             <AlertCircle className="w-3.5 h-3.5 text-red-400" />
-          ) : (
-            <Sparkles className="w-3.5 h-3.5 text-primary-400" strokeWidth={1.5} />
-          )}
-        </div>
+          </div>
+        ) : (
+          <Logo className="w-8 h-8 flex-shrink-0" showText={false} />
+        )
       )}
 
       <div className={`max-w-[85%] sm:max-w-[75%] ${isUser ? 'items-end' : ''}`}>
@@ -485,9 +483,7 @@ export default function ChatPage() {
               <ArrowLeft className="w-4 h-4 text-dark-400" strokeWidth={1.5} />
             </button>
 
-            <div className="w-8 h-8 rounded-lg border border-white/10 bg-white/[0.02] flex items-center justify-center">
-              <Sparkles className="w-3.5 h-3.5 text-primary-400" strokeWidth={1.5} />
-            </div>
+            <Logo className="w-8 h-8" showText={false} />
 
             <div className="flex-1 min-w-0">
               <h2 className="font-semibold text-sm tracking-tight truncate">

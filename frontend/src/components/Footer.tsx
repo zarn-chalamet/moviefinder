@@ -1,6 +1,7 @@
 import { Film, Mail, Globe } from 'lucide-react';
 import { GithubIcon } from './icons/GithubIcon';
 import useAppStore from '../store/appStore';
+import Logo from './Logo';
 
 export default function Footer() {
   const { t, setCurrentPage } = useAppStore();
@@ -17,14 +18,8 @@ export default function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-12 gap-8 md:gap-12">
           {/* Brand */}
           <div className="col-span-2 md:col-span-5 space-y-4">
-            <button
-              onClick={() => setCurrentPage('home')}
-              className="flex items-center gap-2 group"
-            >
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center">
-                <Film className="w-4 h-4 text-white" />
-              </div>
-              <span className="text-base font-bold tracking-tight">MovieFinder</span>
+            <button onClick={() => setCurrentPage('home')}>
+              <Logo showText={true} />
             </button>
             <p className="text-sm text-dark-400 max-w-xs leading-relaxed">
               {t('footer.tagline')}

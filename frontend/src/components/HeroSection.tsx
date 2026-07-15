@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
-import { ArrowRight, Sparkles, Film } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import useAppStore from '../store/appStore';
+import Logo from './Logo';
 
 export default function HeroSection() {
   const { t, setCurrentPage } = useAppStore();
@@ -124,9 +125,7 @@ export default function HeroSection() {
               >
                 {/* Chat header */}
                 <div className="flex items-center gap-3 pb-5 border-b border-white/5">
-                  <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center">
-                    <Sparkles className="w-4 h-4 text-white" />
-                  </div>
+                  <Logo className="w-9 h-9" showText={false} />
                   <div>
                     <p className="text-sm font-semibold">MovieFinder AI</p>
                     <p className="text-[11px] text-dark-500 flex items-center gap-1.5">
@@ -140,15 +139,13 @@ export default function HeroSection() {
                   {/* User message */}
                   <div className="flex justify-end">
                     <div className="max-w-[80%] px-4 py-2.5 rounded-2xl rounded-tr-sm bg-white/5 border border-white/5 text-sm text-dark-200">
-                      🔗 https://tiktok.com/@movies/video/123
+                      🔗 https://web.facebook.com/share/v/1CTJsg6MuF/?mibextid=wwXIfr
                     </div>
                   </div>
 
-                  {/* AI response */}
-                  <div className="flex gap-3">
-                    <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Sparkles className="w-3.5 h-3.5 text-white" />
-                    </div>
+                  {/* Logo */}
+                  <div className="flex gap-3 items-start">
+                    <Logo className="w-7 h-7 flex-shrink-0 mt-0.5" showText={false} />
                     <div className="space-y-3 flex-1">
                       <div className="px-4 py-3 rounded-2xl rounded-tl-sm border border-white/5 bg-white/[0.02] text-sm">
                         <p className="font-semibold text-primary-400 text-xs uppercase tracking-wider mb-1">
