@@ -25,8 +25,10 @@ interface AppState {
   t: (key: string) => string;
 
   // Navigation
-  currentPage: 'home' | 'chat' | 'trending' | 'watchlist' | 'about' | 'movie-detail'   |'privacy' | 'contact'; 
+  currentPage: 'home' | 'chat' | 'trending' | 'watchlist' | 'about' | 'movie-detail' | 'privacy' | 'contact'; 
+  previousPage: AppState['currentPage'];
   setCurrentPage: (page: AppState['currentPage']) => void;
+  goBack: () => void;
 
   // Chat
   messages: ChatMessage[];
@@ -91,9 +93,23 @@ const useAppStore = create<AppState>((set, get) => ({
   // Navigation
   // ============================================
   currentPage: 'home',
+  previousPage: 'home',
   
   setCurrentPage: (page) => {
-    set({ currentPage: page, isMobileMenuOpen: false });
+    set((state) => ({
+      previousPage: state.currentPage,
+      currentPage: page,
+      isMobileMenuOpen: false,
+    }));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  },
+
+  goBack: () => {
+    set((state) => ({
+      currentPage: state.previousPage,
+      previousPage: state.currentPage,
+      isMobileMenuOpen: false,
+    }));
     window.scrollTo({ top: 0, behavior: 'smooth' });
   },
 

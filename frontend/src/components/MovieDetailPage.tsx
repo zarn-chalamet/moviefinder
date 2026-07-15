@@ -24,7 +24,8 @@ import {
 export default function MovieDetailPage() {
   const { 
     t, selectedMovie, setCurrentPage, isMovieSaved, 
-    addToSaved, removeFromSaved, setSelectedMovie, language 
+    addToSaved, removeFromSaved, setSelectedMovie, language,
+    goBack,
   } = useAppStore();
 
   const [streamingProviders, setStreamingProviders] = useState<StreamingProvider[]>([]);
@@ -98,7 +99,7 @@ export default function MovieDetailPage() {
         <div className="absolute inset-0 bg-gradient-to-r from-dark-950/90 to-transparent" />
 
         <motion.button
-          onClick={() => setCurrentPage('chat')}
+          onClick={goBack}
           className="absolute top-20 left-4 sm:left-8 p-2.5 rounded-xl glass hover:bg-white/10 transition-colors z-10"
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
